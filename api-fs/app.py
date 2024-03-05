@@ -8,7 +8,6 @@ from datetime import datetime, timezone
 import requests as rq
 from dotenv import load_dotenv
 
-rrr
 # ------- my local imports
 from database.models import Farmer
 from schema.farmer_schema import FarmerInSchema,FarmerOutSchema
