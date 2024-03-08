@@ -16,10 +16,9 @@ load_dotenv()
 
 # https://stackoverflow.com/questions/68997414/sqlalchemy-exc-operationalerror-mysqldb-exceptions-operationalerror-1045
 app = APIFlask(__name__, title='', version='')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root@localhost:3306/agridb'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://myuser:mypassword@mysql_db:3306/agridb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-db.create_all()
 
 
 #Endpoint for creating and inserting a farmer into db from a form using POST
@@ -33,8 +32,8 @@ def Reg_FarmerForm():
         insertfarmer = Farmer(f_name, f_phone, f_location, f_regdate)
 
         try:
-            db.session.add(insertfarmer)
-            db.session.commit()
+            # db.session.add(insertfarmer)
+            # db.session.commit()
             return redirect('/')
         except: 
             return 'An Error occured registering the farmer.'
@@ -74,6 +73,7 @@ def reg_farmer_json(json_data):
 
 
 if __name__ == "__main__":
+    db.create_all()
     app.run(debug=True)
 
 
