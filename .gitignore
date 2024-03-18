@@ -9,3 +9,5 @@ __pycache__
 postgres_data 
 mysql_data 
 cassandra_data
+.vscode
+mongo_data
