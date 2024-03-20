@@ -1,12 +1,11 @@
 from fastapi import FastAPI,Body, HTTPException,BackgroundTasks
 from fastapi.encoders import jsonable_encoder
-from typing import List, Optional
 import uvicorn
 import logging
-from pymongo import MongoClient
-from bson import ObjectId
 from fastapi.middleware.cors import CORSMiddleware
-from models import (
+
+from db.database import farmer_collection, client
+from db.models import (
     ResponseModel,
     ErrorResponseModel,
     FarmerSchema,
@@ -14,24 +13,19 @@ from models import (
     # --------- updates
     # UpdateFarmer,
 )
+from db.queries import(
+    add_farmer,
+    retrieve_all_farmers,
+    add_milk_production
+)
 
 
 app = FastAPI()
 
 logging.basicConfig(level=logging.INFO)
 
-# MongoDB connection details
-MONGO_IP = "mongodb"
-MONGO_PORT = 27017
-MONGO_USERNAME = "user"
-MONGO_PASSWORD = "pass"
-MONGO_DB = "farmerdb"
-MONGO_DETAILS = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_IP}:{MONGO_PORT}/{MONGO_DB}?authSource=admin&retryWrites=true&w=majority"
 
 
-client = MongoClient(MONGO_DETAILS)
-database = client[MONGO_DB]
-farmer_collection = database.get_collection("farmers_collection")
 
 # Event handler to check MongoDB connection on startup
 @app.on_event("startup")
@@ -46,82 +40,6 @@ async def startup_event():
         raise e
 
 
-
-
-def farmer_helper(farmer) -> dict:
-    return {
-        "id": str(farmer["_id"]),
-        "f_uuid": farmer["f_uuid"],
-        "PhoneNumber": farmer["PhoneNumber"],
-        "farmer_Card": farmer["farmer_Card"],
-    }
-
-
-def update_farmer_by_id(id: str, farmer_data: dict) -> Optional[dict]:
-    if len(farmer_data) < 1:
-        return None
-    updated_farmer =  farmer_collection.find_one_and_update(
-        {"_id": ObjectId(id)}, {"$set": farmer_data}, return_document=True
-    )
-    if updated_farmer:
-        return farmer_helper(updated_farmer)
-    return None
-
-
-def update_farmer_by_uuid(uuid: str, data: dict) -> bool:
-    if len(data) < 1:
-        return False
-    result =  farmer_collection.update_one(
-        {"f_uuid": uuid}, {"$set": data}
-    )
-    return result.modified_count > 0
-
-
-def add_farmer(farmer_data: dict) -> Optional[dict]:
-    existing_farmer = farmer_collection.find_one({"f_uuid": farmer_data.get("f_uuid")})
-    if existing_farmer:
-        logging.info("Farmer already exists")
-        return None
-    
-    result = farmer_collection.insert_one(farmer_data)
-    logging.info(result)
-    if result.inserted_id:
-        new_farmer = farmer_collection.find_one({"_id": result.inserted_id})
-        logging.info(new_farmer)
-        return farmer_helper(new_farmer)
-    return None
-
-
-def add_milk_production(f_uuid: str, milk_production: MilkProduction):
-    result = farmer_collection.update_one({"f_uuid": f_uuid},
-                                   {"$push": {"farmer_Card.farmingDetails.livestockDetails.milkProduction": milk_production.dict()}})
-    if result.modified_count == 0:
-        raise HTTPException(status_code=404, detail="Farmer not found")
-
-
-
-def retrieve_farmer_by_uuid(uuid: str) -> Optional[dict]:
-    farmer =  farmer_collection.find_one({"f_uuid": uuid})
-    if farmer:
-        return farmer_helper(farmer)
-    return None
-
-
-def retrieve_all_farmers() -> list:
-    farmers = []
-    for farmer in farmer_collection.find():
-        farmers.append(farmer_helper(farmer))
-    return farmers
-
-
-def delete_farmer(uuid: str) -> bool:
-    result =  farmer_collection.delete_one({"f_uuid": uuid})
-    return result.deleted_count > 0
-
-
-
-
-
 @app.get("/", tags=["Root"])
 def read_root():
     return {"message": "Hello World"}
@@ -132,7 +50,7 @@ def read_root():
 def create_farmer(farmer: FarmerSchema):
     farmer = jsonable_encoder(farmer)
     logging.info(farmer)
-    new_farmer = add_farmer(farmer)
+    new_farmer = add_farmer(db=farmer_collection, farmer_data=farmer)
     if new_farmer:
         return ResponseModel(data=new_farmer,code=200, message= "Farmer added successfully")
     return ErrorResponseModel(error="An error occurred", code=404,message="Farmer not added!")

@@ -25,10 +25,8 @@ RUN adduser -D -u $USER_ID -G www www -s /bin/sh
 # Change the ownership to the created user and group
 RUN chown -R www:www /var/www/
 
-
 # Switch to the non-root user
 USER www
-
 
 COPY . .
 
