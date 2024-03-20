@@ -2,6 +2,8 @@ from typing import List, Optional
 from pydantic import BaseModel,Field,validator
 from datetime import datetime
 from typing import Any
+import re 
+
 
 class MilkProduction(BaseModel):
     collection_date: Optional[str]
@@ -89,6 +91,26 @@ class FarmerSchema(BaseModel):
     f_uuid: Optional[str]
     PhoneNumber: Optional[str]
     farmer_Card: Optional[FarmerCard]
+
+    # @validator('f_uuid')
+    # def validate_uuid(cls, v):
+    #     if v is not None:
+    #         uuid_pattern = re.compile(
+    #             r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$'
+    #         )
+    #         if not uuid_pattern.match(v):
+    #             raise ValueError('Not a valid UUIDv4')
+    #     return v
+
+    # @validator('PhoneNumber')
+    # def validate_phone_number(cls, v):
+    #     if v is not None:
+    #         phone_pattern = re.compile(
+    #             r'^\+?[0-9]{1,3}[- ]?\(?[0-9]{3}\)?[- ]?[0-9]{3}[- ]?[0-9]{4}$'
+    #         )
+    #         if not phone_pattern.match(v):
+    #             raise ValueError('Not a valid phone number')
+    #     return v
 
 
 
