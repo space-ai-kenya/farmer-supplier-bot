@@ -1,82 +1,159 @@
-from apiflask import APIFlask
+from apiflask import APIFlask, Schema, HTTPError
+from flask_cors import CORS
 from flask import request, jsonify, render_template, url_for, session, redirect
 from flask_mysqldb import MySQL
 from flask_sqlalchemy import SQLAlchemy
 import pymysql
 import os
 from datetime import datetime, timezone
-import requests as rq
+import requests
 from dotenv import load_dotenv
+from apiflask.fields import Integer, String
+from apiflask.validators import Length, OneOf
 
-# ------- my local imports
-from database.models import Farmer
-from schema.farmer_schema import FarmerInSchema,FarmerOutSchema
+from ibm_watson import AssistantV2
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
+
+# Local imports ------------------------------------------------
+from database.models import Farmer, Order
+from schema.farmer_schema import FarmerInSchema, FarmerOutSchema, OrderIn
+from database.db import db
+from routes.routes import get_order_details
+from routes.invoices import generate_invoice
 
 load_dotenv()
 
+#set base directory of app.py
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+
+
+assistant_api_key = os.getenv('ASSISTANT_API_KEY')
+assistant_url = os.getenv('ASSISTANT_URL')
+assistant_id = os.getenv('ASSISTANT_ID')
+
+authenticator = IAMAuthenticator(assistant_api_key)
+assistant = AssistantV2(
+    version='2023-04-15',
+    authenticator=authenticator
+)
+assistant.set_service_url(assistant_url)
+
+
+
 # https://stackoverflow.com/questions/68997414/sqlalchemy-exc-operationalerror-mysqldb-exceptions-operationalerror-1045
-app = APIFlask(__name__, title='', version='')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://myuser:mypassword@mysql_db:3306/agridb'
+
+app = APIFlask(__name__, title='', version='', static_folder='static',template_folder='templates')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://myuser:mypassword@host.docker.internal:3306/agridb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+db.init_app(app)
+CORS(app, resources={r"*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE"]}})
 
 
-#Endpoint for creating and inserting a farmer into db from a form using POST
-@app.route('/', methods=['GET','POST'])
-def Reg_FarmerForm():
-    if request.method == 'POST':
+##Endpoint for creating and inserting a farmer into db from a FORM using POST
+@app.route('/', methods=['POST','GET'])
+def register_farmer_form():
+    if request.method == 'GET':
+        # Serve HTML form
+        return render_template('reg_farmer.html')
+    
+    elif request.method == 'POST':
+        # Manually extract form data
         f_name = request.form.get('name')
         f_phone = request.form.get('phone')
         f_location = request.form.get('location')
-        f_regdate = datetime.now(timezone.utc)
-        insertfarmer = Farmer(f_name, f_phone, f_location, f_regdate)
-
+        
+        # Check if farmer already exists
+        existing_farmer = Farmer.query.filter_by(phone=f_phone).first()
+        if existing_farmer:
+            return "Farmer is already registered."
+        
+        # Proceed to create and save the new farmer
+        new_farmer = Farmer(name=f_name, phone=f_phone, location=f_location, reg_date=datetime.now(timezone.utc))
         try:
-            # db.session.add(insertfarmer)
-            # db.session.commit()
-            return redirect('/')
-        except: 
-            return 'An Error occured registering the farmer.'
-    else:
-        return render_template('reg_farmer.html')
+            db.session.add(new_farmer)
+            db.session.commit()
+            # Redirect or inform of successful registration
+            return redirect('/')  # Adjust as needed
+        except Exception as e:
+            # Handle errors during save
+            return f'An error occurred: {str(e)}'
 
 
-@app.post('/reg_farmerJson')
-@app.input(FarmerInSchema)  
-def reg_farmer_json(json_data):
-
-    data = json_data
-    name = data.get('Name', None)
-    phone = data.get('Phone', None)
-    location = data.get('Location', None)
-    f_regdate = datetime.now(timezone.utc)
-
-    print(name, phone, location)
-
-    # try:
-    #     insertfarmer = Farmer(name, phone, location, f_regdate)
-    #     db.session.add(insertfarmer)
-    #     db.session.commit()
-    #     return jsonify({"message": "Farmer added successfully", "status": "success"}), 200
-    # except:
-    #     return jsonify({"message": "Request must be JSON", "status": "error"}), 400
-
-    return {'message': 'created'}
+@app.get('/test')
+def test_get():
+    return {"message": "GET request successful"}
 
 
+##Register a farmer
+@app.post('/reg_farmer')
+@app.input(FarmerInSchema, location='json') 
+def register_farmer(json_data):
+    reg_farmer = Farmer(**json_data)
+    try:
+        db.session.add(reg_farmer)
+        db.session.commit()
+        return jsonify({"message": "Farmer added successfully", "status": "success"}), 200
+    except:
+        return jsonify({"message": "Request must be JSON", "status": "error"}), 400
 
 
-#### @app.route('/submit_order', methods = ['GET','POST'])
-### def create_order():
-    ################# working on it
+##Get farmer name and id using phone number---------------------
+# @app.get('/farmers/<string:phone_num>')
+# @app.output(FarmerOutSchema)  # Specify fields to output
+# def verify_farmer_registration(phone_num):
+#     farmer = Farmer.query.filter(Farmer.phone == phone_num).first()
+#     if not farmer:
+#         # Farmer not found, return a message indicating they're not registered
+#         return jsonify({"NotFound": "Farmer not found in the system. Please make sure you are registered."}), 404
+#     # Farmer found, return the farmer details
+#     return jsonify({"AlreadyRegistered": "Farmer is already registered.", "details": farmer})
 
+
+@app.get('/farmers/<string:phone_num>')
+@app.output(FarmerOutSchema)  # Specify fieldst to output
+def get_farmer_by_phone(phone_num):
+    farmer = Farmer.query.filter(Farmer.phone == phone_num).first()
+    print(farmer)
+    if not farmer:
+        return HTTPError(404, message='Farmer not found in the system. Please make sure you are registered fitst.')
+    return farmer
+        
+
+## Enpoint to create an store an order in db and generate an invoice----------
+@app.post('/submit_order')
+@app.input(OrderIn, location='json')
+def submit_order(json_data):
+
+    phone_num = json_data['phone']
+    farmer = Farmer.query.filter_by(phone=phone_num).first()
+    if not farmer:
+        raise HTTPError(404, message='Farmer not found in the system. Please make sure you are registered.')
+    
+    create_order = Order(farmerID=farmer.farmerID, order_desc =json_data['order_desc'])
+    db.session.add(create_order)
+    db.session.commit()
+
+    ### Ensures the 'invoices' directory exists
+    if not os.path.exists('invoices'):
+        os.makedirs('invoices')
+
+    ### for generating invoice below
+    order_details = get_order_details(create_order.orderID)
+    invoice_filename = os.path.join('invoices', f"invoice_{create_order.orderID}.pdf")
+    generate_invoice(order_details, filename=invoice_filename)
+
+    return jsonify({"message": "Your order was placed successfully!", "Status": "success"}), 200
+   
+
+
+#https://www.reddit.com/r/flask/comments/15lzkxx/i_have_tunneled_my_flask_app_to_ngrok_that_now_is/
+#https://stackoverflow.com/questions/29458548/can-you-add-https-functionality-to-a-python-flask-web-server
 
 
 if __name__ == "__main__":
-    db.create_all()
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
 
-
-#uninstall and reinstall python on pc to make sure no problem are happening here
-    
-#install pymysql also btw
+# my custom ngrok endpoint https://f7123d742f2c9ee7.ngrok.app

@@ -1,7 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timezone
-
-db = SQLAlchemy()
+from database.db import db
 
 class Farmer(db.Model):
     __tablename__ = 'farmers'
@@ -11,11 +10,11 @@ class Farmer(db.Model):
     location =db.Column(db.String(500), nullable=True)
     reg_date = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
-    def __init__(self, name, phone, location, reg_date):
-        self.name = name
-        self.phone = phone
-        self.location = location
-        self.reg_date = reg_date
+    # def __init__(self, name, phone, location, reg_date):
+    #     self.name = name
+    #     self.phone = phone
+    #     self.location = location
+    #     self.reg_date = reg_date
 
 
 class Agent(db.Model):
@@ -26,11 +25,11 @@ class Agent(db.Model):
     location = db.Column(db.String(500), nullable = True)
     reg_date = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
-    def __init__(self, name, phone, location, reg_date):
-        self.name = name
-        self.phone = phone
-        self.location = location
-        self.reg_date = reg_date
+    # def __init__(self, name, phone, location, reg_date):
+    #     self.name = name
+    #     self.phone = phone
+    #     self.location = location
+    #     self.reg_date = reg_date
 
 
 class Supplier(db.Model):
@@ -41,8 +40,17 @@ class Supplier(db.Model):
     location = db.Column(db.String(500), nullable = True)
     reg_date = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
-    def __init__(self, name, phone, location, reg_date):
-        self.name = name
-        self.phone = phone
-        self.location = location
-        self.reg_date = reg_date
+    # def __init__(self, name, phone, location, reg_date):
+    #     self.name = name
+    #     self.phone = phone
+    #     self.location = location
+    #     self.reg_date = reg_date
+
+
+class Order(db.Model):
+    __tablename__ = 'orders'
+    orderID = db.Column(db.Integer, primary_key=True)
+    farmerID = db.Column(db.Integer, nullable=False)
+    order_desc = db.Column(db.String(65000), nullable=False)
+    status = db.Column(db.String(255), default='submitted')
+    orderDate = db.Column(db.DateTime, default=datetime.now(timezone.utc))
