@@ -1,10 +1,14 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timezone
 from database.db import db
+import uuid
+
+
 
 class Farmer(db.Model):
     __tablename__ = 'farmers'
     farmerID =db.Column(db.Integer, primary_key = True)
+    f_uuid = db.Column(db.String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
     name =db.Column(db.String(500), nullable=False)
     phone =db.Column(db.String(100), nullable=False)
     location =db.Column(db.String(500), nullable=True)

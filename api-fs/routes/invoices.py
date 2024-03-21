@@ -13,15 +13,16 @@ from common.getfilepath import file_path
 
 ## This function helps to filter the orders and checks for regular expressions regarding weight/quantities. Very Primitive way of doing NLP. WIP
 def parse_order_description(order_desc):
-    # Updated pattern to include more units
-    pattern = re.compile(r'(\d+\s?(kg|kgs|bag(s?)|box(es?)|lb|lbs|pound(s?)|gram(s?)|gm))')
+    # Updated pattern to include more units and optionally match the word 'of' following the units
+    pattern = re.compile(r'(\d+\s?(kg|kgs|bag(s?)|box(es?)|lb|lbs|pound(s?)|gram(s?)|gm)\s?of)')
     
     items = order_desc.split(',')
     parsed_items = [["Item", "Quantity/Weight"]]
     for item in items:
         match = pattern.search(item)
         if match:
-            quantity = match.group(1)
+            quantity = match.group(1).rstrip(' of')  # Remove ' of' from the end of the quantity string
+            # Remove the matched quantity (including 'of' if present) from the item description
             name = pattern.sub('', item).strip()
             parsed_items.append([name.capitalize(), quantity])
         else:

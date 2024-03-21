@@ -12,10 +12,6 @@ run_1: create_local_folders
 
 
 
-
-
-
-
 # -------- production
 production: 
 	echo "deploying to production"

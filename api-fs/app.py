@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask import request, jsonify, render_template, url_for, session, redirect
 from flask_mysqldb import MySQL
 from flask_sqlalchemy import SQLAlchemy
+
 import pymysql
 import os
 from datetime import datetime, timezone
@@ -14,13 +15,15 @@ from apiflask.validators import Length, OneOf
 from ibm_watson import AssistantV2
 from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 
+import uuid
+
 # Local imports ------------------------------------------------
 from database.models import Farmer, Order
 from schema.farmer_schema import FarmerInSchema, FarmerOutSchema, OrderIn
 from database.db import db
 from routes.routes import get_order_details
 from routes.invoices import generate_invoice
-
+from common.farmercard import FC_TEMPLATE
 load_dotenv()
 
 #set base directory of app.py
@@ -42,6 +45,9 @@ assistant.set_service_url(assistant_url)
 
 
 # https://stackoverflow.com/questions/68997414/sqlalchemy-exc-operationalerror-mysqldb-exceptions-operationalerror-1045
+
+
+# MySQL SQLALchemy configuration 
 
 app = APIFlask(__name__, title='', version='', static_folder='static',template_folder='templates')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://myuser:mypassword@host.docker.internal:3306/agridb'
@@ -80,44 +86,76 @@ def register_farmer_form():
             return f'An error occurred: {str(e)}'
 
 
-@app.get('/test')
-def test_get():
-    return {"message": "GET request successful"}
-
-
 ##Register a farmer
 @app.post('/reg_farmer')
 @app.input(FarmerInSchema, location='json') 
 def register_farmer(json_data):
-    reg_farmer = Farmer(**json_data)
+
+    # Generate f_uuid once 
+    f_uuid = str(uuid.uuid4())
+
+    # MySQL part 
+    reg_farmer = Farmer(f_uuid=f_uuid, name=json_data['name'], phone=json_data['phone'], location=json_data['location'])
+    db.session.add(reg_farmer)
     try:
-        db.session.add(reg_farmer)
         db.session.commit()
-        return jsonify({"message": "Farmer added successfully", "status": "success"}), 200
-    except:
-        return jsonify({"message": "Request must be JSON", "status": "error"}), 400
+    except Exception as e:
+        db.session.rollback()  
+        return jsonify({"message": "Could not add to MySQL database. Error: {}".format(str(e)), "status": "error"}), 400
+    
+    #for the external API 
+    # farmcard_api_data = {
+    #     "f_uuid": f_uuid,
+    #     "PhoneNumber": json_data.get("phone"),
+    # }
+
+    FC_TEMPLATE["f_uuid"]= f_uuid
+    FC_TEMPLATE["PhoneNumber"]= json_data.get("phone")
+
+    # URL 
+    farmcard_api_url = 'https://732a-41-90-70-123.ngrok-free.app/create_farmcard'
+
+    # Try register the farmer in the external API
+    try:
+        response = requests.post(farmcard_api_url, json=FC_TEMPLATE)
+        response.raise_for_status()  # Raises an error for bad responses
+    except requests.RequestException as e:
+        # delete farmer in case it doesnt work
+        db.session.delete(reg_farmer)
+        db.session.commit()
+        return jsonify({"message": "Failed to register farmer in external API. MySQL entry rolled back. Error: {}".format(str(e)), "status": "error"}), 400
+
+    return jsonify({"message": "Farmer added successfully to both MySQL and FarmCard", "status": "success", "f_uuid": f_uuid}), 200
 
 
-##Get farmer name and id using phone number---------------------
-# @app.get('/farmers/<string:phone_num>')
-# @app.output(FarmerOutSchema)  # Specify fields to output
-# def verify_farmer_registration(phone_num):
-#     farmer = Farmer.query.filter(Farmer.phone == phone_num).first()
-#     if not farmer:
-#         # Farmer not found, return a message indicating they're not registered
-#         return jsonify({"NotFound": "Farmer not found in the system. Please make sure you are registered."}), 404
-#     # Farmer found, return the farmer details
-#     return jsonify({"AlreadyRegistered": "Farmer is already registered.", "details": farmer})
 
 
+
+#Get farmer name and id using phone number---------------------
 @app.get('/farmers/<string:phone_num>')
-@app.output(FarmerOutSchema)  # Specify fieldst to output
-def get_farmer_by_phone(phone_num):
-    farmer = Farmer.query.filter(Farmer.phone == phone_num).first()
-    print(farmer)
+@app.output(FarmerOutSchema)  # Specify fields to output
+def verify_farmer_registration(phone_num):
+    farmer = Farmer.query.filter_by(phone=phone_num).first()
     if not farmer:
-        return HTTPError(404, message='Farmer not found in the system. Please make sure you are registered fitst.')
-    return farmer
+        # Farmer not found
+        return jsonify({"NotFound": "Farmer not found in the system. Please make sure you are registered."}), 404
+
+    # Farmer found, serialize the farmer details
+    schema = FarmerOutSchema()
+    farmer_data = schema.dump(farmer)
+    
+    # Return the custom response including the serialized farmer data
+    return jsonify({"AlreadyRegistered": "Farmer is already registered.", "Farmer": farmer_data})
+
+
+# @app.get('/farmers/<string:phone_num>')
+# @app.output(FarmerOutSchema)  # Specify fieldst to output
+# def get_farmer_by_phone(phone_num):
+#     farmer = Farmer.query.filter(Farmer.phone == phone_num).first()
+#     print(farmer)
+#     if not farmer:
+#         return HTTPError(404, message='Farmer not found in the system. Please make sure you are registered fitst.')
+#     return farmer
         
 
 ## Enpoint to create an store an order in db and generate an invoice----------

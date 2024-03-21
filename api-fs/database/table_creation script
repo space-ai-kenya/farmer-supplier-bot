@@ -1,5 +1,6 @@
 CREATE TABLE farmers (
     farmerID INT AUTO_INCREMENT PRIMARY KEY,
+    f_uuid VARCHAR(36) NOT NULL UNIQUE,
     name VARCHAR(500) NOT NULL,
     phone VARCHAR(100) NOT NULL,
     location VARCHAR(500),
@@ -26,7 +27,7 @@ CREATE TABLE orders (
     orderID INT AUTO_INCREMENT PRIMARY KEY,
     farmerID INT NOT NULL,
     order_desc TEXT NOT NULL,
-    status VARCHAR(100) DEFAULT 'submitted',
+    status VARCHAR(255),
     orderDate DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`farmerID`) REFERENCES `farmers`(`farmerID`) ON DELETE CASCADE
 );
