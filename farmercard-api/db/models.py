@@ -10,14 +10,15 @@ class MilkProduction(BaseModel):
     collection_amount: Optional[int]
     variance: Optional[int]
 
-    @validator('collection_date')
-    def validate_date(cls, v):
-        if v is not None:
-            try:
-                datetime.strptime(v, '%Y-%m-%d')
-            except ValueError:
-                raise ValueError("Incorrect data format, should be YYYY-MM-DD")
-        return v
+    # @validator('collection_date')
+    # def validate_date(cls, v):
+    #     if v is not None or '':
+    #         try:
+    #             datetime.strptime(v, '%Y-%m-%d')
+    #             return v
+    #         except ValueError:
+    #             raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+   
 
 
 class CropDetails(BaseModel):
@@ -90,7 +91,7 @@ class FarmerCard(BaseModel):
 class FarmerSchema(BaseModel):
     f_uuid: Optional[str]
     PhoneNumber: Optional[str]
-    farmer_Card: Optional[FarmerCard]
+    farmer_Card: FarmerCard
 
     # @validator('f_uuid')
     # def validate_uuid(cls, v):

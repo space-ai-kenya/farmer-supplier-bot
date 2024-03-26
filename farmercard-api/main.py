@@ -25,6 +25,9 @@ app = FastAPI()
 logging.basicConfig(level=logging.INFO)
 
 
+def drop_all_records(db, collection_name):
+    db[collection_name].delete_many({})
+
 
 
 # Event handler to check MongoDB connection on startup
@@ -46,7 +49,7 @@ def read_root():
 
 
 
-@app.post("/farmers/", response_description="Add new farmer")
+@app.post("/create_farmcard/", response_description="Add new farmer")
 def create_farmer(farmer: FarmerSchema):
     farmer = jsonable_encoder(farmer)
     logging.info(farmer)
@@ -57,13 +60,14 @@ def create_farmer(farmer: FarmerSchema):
 
 @app.get("/farmers/", response_description="List all farmers")
 def list_farmers():
-    return retrieve_all_farmers()
+    return retrieve_all_farmers(db=farmer_collection)
 
 
 # FastAPI route to add milk production record
-@app.post("/farmers/{f_uuid}/milk_production")
-async def add_milk_production_route(f_uuid: str, milk_production: MilkProduction):
-    add_milk_production(f_uuid, milk_production)
+@app.post("/farmer/{p_number}/add_milk_production")
+async def add_milk_production_route(p_number: str, milk_production: MilkProduction):
+    print(milk_production)
+    add_milk_production(db=farmer_collection,p_number=p_number, milk_production=milk_production)
     return {"message": "Milk production record added successfully"}
 
 # @app.get("/farmers/", response_description="List all farmers", response_model=List[FarmerSchema])
