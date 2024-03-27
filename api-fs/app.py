@@ -101,62 +101,43 @@ def register_farmer(json_data):
         db.session.commit()
     except Exception as e:
         db.session.rollback()  
-        return jsonify({"message": "Could not add to MySQL database. Error: {}".format(str(e)), "status": "error"}), 400
+        return jsonify({"message": "Could not add farmer to MySQL database. Error: {}".format(str(e)), "status": "error"}), 400
     
-    #for the external API 
-    # farmcard_api_data = {
-    #     "f_uuid": f_uuid,
-    #     "PhoneNumber": json_data.get("phone"),
-    # }
+    # FC_TEMPLATE["f_uuid"]= f_uuid
+    # FC_TEMPLATE["PhoneNumber"]= json_data.get("phone")
 
-    FC_TEMPLATE["f_uuid"]= f_uuid
-    FC_TEMPLATE["PhoneNumber"]= json_data.get("phone")
+    # # URL 
+    # farmcard_api_url = 'https://732a-41-90-70-123.ngrok-free.app/create_farmcard'
 
-    # URL 
-    farmcard_api_url = 'https://732a-41-90-70-123.ngrok-free.app/create_farmcard'
-
-    # Try register the farmer in the external API
-    try:
-        response = requests.post(farmcard_api_url, json=FC_TEMPLATE)
-        response.raise_for_status()  # Raises an error for bad responses
-    except requests.RequestException as e:
-        # delete farmer in case it doesnt work
-        db.session.delete(reg_farmer)
-        db.session.commit()
-        return jsonify({"message": "Failed to register farmer in external API. MySQL entry rolled back. Error: {}".format(str(e)), "status": "error"}), 400
+    # # Try register the farmer in the external API
+    # try:
+    #     response = requests.post(farmcard_api_url, json=FC_TEMPLATE, verify=False)
+    #     response.raise_for_status()  # Raises an error for bad responses
+    # except requests.RequestException as e:
+    #     # delete farmer in case it doesnt work
+    #     db.session.delete(reg_farmer)
+    #     db.session.commit()
+    #     return jsonify({"message": "Failed to register farmer in external API. MySQL entry rolled back. Error: {}".format(str(e)), "status": "error"}), 400
 
     return jsonify({"message": "Farmer added successfully to both MySQL and FarmCard", "status": "success", "f_uuid": f_uuid}), 200
 
 
 
-
-
-#Get farmer name and id using phone number---------------------
+## Get & Verify farmer registration and info using phone number
 @app.get('/farmers/<string:phone_num>')
-@app.output(FarmerOutSchema)  # Specify fields to output
+@app.output(FarmerOutSchema)  
 def verify_farmer_registration(phone_num):
     farmer = Farmer.query.filter_by(phone=phone_num).first()
     if not farmer:
-        # Farmer not found
-        return jsonify({"NotFound": "Farmer not found in the system. Please make sure you are registered."}), 404
-
-    # Farmer found, serialize the farmer details
-    schema = FarmerOutSchema()
-    farmer_data = schema.dump(farmer)
+        # Instead of returning an HTTP error, return a schema-compliant response with a message
+        return {"notfound": "Farmer not found in the system. Please make sure you are registered."}
     
-    # Return the custom response including the serialized farmer data
-    return jsonify({"AlreadyRegistered": "Farmer is already registered.", "Farmer": farmer_data})
+    # If farmer is found, optionally add a message, or just return the farmer's details
+    farmer_details = {"name": farmer.name, "found": "We have found an existing account, You are already registered."}
+    return farmer_details
 
 
-# @app.get('/farmers/<string:phone_num>')
-# @app.output(FarmerOutSchema)  # Specify fieldst to output
-# def get_farmer_by_phone(phone_num):
-#     farmer = Farmer.query.filter(Farmer.phone == phone_num).first()
-#     print(farmer)
-#     if not farmer:
-#         return HTTPError(404, message='Farmer not found in the system. Please make sure you are registered fitst.')
-#     return farmer
-        
+
 
 ## Enpoint to create an store an order in db and generate an invoice----------
 @app.post('/submit_order')
@@ -182,7 +163,7 @@ def submit_order(json_data):
     generate_invoice(order_details, filename=invoice_filename)
 
     return jsonify({"message": "Your order was placed successfully!", "Status": "success"}), 200
-   
+
 
 
 #https://www.reddit.com/r/flask/comments/15lzkxx/i_have_tunneled_my_flask_app_to_ngrok_that_now_is/

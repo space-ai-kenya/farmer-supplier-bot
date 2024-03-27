@@ -1,5 +1,6 @@
 version: '3.8'
 
+
 services:
   # ----------- database services
   redis:
@@ -39,7 +40,6 @@ services:
         target: /data/db
     networks:
       - spaceai-fmproj-network
-   
 
   mysql:
     image: mysql:latest

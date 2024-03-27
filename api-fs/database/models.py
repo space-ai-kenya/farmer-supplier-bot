@@ -13,7 +13,7 @@ class Farmer(db.Model):
     phone =db.Column(db.String(100), nullable=False)
     location =db.Column(db.String(500), nullable=True)
     reg_date = db.Column(db.DateTime, default=datetime.now(timezone.utc))
-
+    
     # def __init__(self, name, phone, location, reg_date):
     #     self.name = name
     #     self.phone = phone

@@ -10,12 +10,9 @@ class FarmerInSchema(Schema):
     #reg_date = DateTime(default=datetime.now(timezone.utc), required=False)
 
 class FarmerOutSchema(Schema):
-    #farmerID = Integer()
     name = String()
-    #phone = String()
-    #location = String()
-    #reg_date = DateTime()
-    
+    found= String()
+    notfound = String()
 
 class OrderIn(Schema):
     phone = String(required=True)
