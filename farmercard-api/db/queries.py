@@ -7,6 +7,12 @@ from .models import (
     FarmerSchema,
     FarmingDetails,
     MilkProduction,
+    Vaccination,
+
+
+
+
+
     ResponseModel,
     ErrorResponseModel
 )
@@ -48,7 +54,6 @@ def add_milk_production(db, p_number: str, milk_production: MilkProduction):
         raise HTTPException(status_code=404, detail="Farmer not found")
 
     farmer_card = farmer.get("farmer_Card", {})
-    # farming_details = farmer_card.get("farmingDetails", {})
     livestock_details = farmer_card.get("livestockDetails", {})
 
     # If livestockDetails doesn't exist or is not a dictionary, initialize it as an empty dictionary
@@ -71,34 +76,53 @@ def add_milk_production(db, p_number: str, milk_production: MilkProduction):
         {"$set": {"farmer_Card.livestockDetails": {"milkProduction": milk_production_list}}}
     )
 
+# Add number of cows
+def add_num_cows(db, p_number: str, cows: int):
+    farmer = db.find_one({"PhoneNumber": p_number})
+    if farmer is None:
+        raise HTTPException(status_code=404, detail="Farmer not found")
+    
+    farmer_card = farmer.get("farmer_Card", {})
+    livestock_details = farmer_card.get("livestockDetails", {})
 
+    # Check numberOfCows else put 0
+    numberOfCows = livestock_details.get("numberOfCows", 0)
 
+    if not isinstance(numberOfCows, int):
+        numberOfCows = 0
+        db.update_one(
+            {"PhoneNumber": p_number},
+            {"$set": {"farmer_Card.livestockDetails.numberOfCows": numberOfCows}}
+        )
+    else:
+        # Update numberOfCows with the provided value
+        numberOfCows += cows
+        db.update_one(
+            {"PhoneNumber": p_number},
+            {"$set": {"farmer_Card.livestockDetails.numberOfCows": numberOfCows}}
+        )
 
-def update_farmer_by_id(db, id: str, farmer_data: dict) -> Optional[dict]:
-    if len(farmer_data) < 1:
-        return None
-    updated_farmer =  db.find_one_and_update(
-        {"_id": ObjectId(id)}, {"$set": farmer_data}, return_document=True
+    return numberOfCows
+
+def add_vaccinations(db, p_number: str, vaccinations: List[Vaccination]):
+    farmer = db.find_one({"PhoneNumber": p_number})
+    if farmer is None:
+        raise HTTPException(status_code=404, detail="Farmer not found")
+    
+    farmer_card = farmer.get("farmer_Card", {})
+    livestock_details = farmer_card.get("livestockDetails", {})
+
+    # Get existing vaccination list or initialize an empty list
+    existing_vaccinations = livestock_details.get("vaccinations", [])
+
+    # Append new vaccinations to the existing list
+    existing_vaccinations.extend(vaccinations)
+
+    # Update the livestockDetails with the new vaccination list
+    db.update_one(
+        {"PhoneNumber": p_number},
+        {"$set": {"farmer_Card.livestockDetails.vaccinations": existing_vaccinations}}
     )
-    if updated_farmer:
-        return farmer_helper(updated_farmer)
-    return None
 
-def update_farmer_by_uuid(db,uuid: str, data: dict) -> bool:
-    if len(data) < 1:
-        return False
-    result =  db.update_one(
-        {"f_uuid": uuid}, {"$set": data}
-    )
-    return result.modified_count > 0
+    return existing_vaccinations
 
-def retrieve_farmer_by_uuid(db, uuid: str) -> Optional[dict]:
-    farmer =  db.find_one({"f_uuid": uuid})
-    if farmer:
-        return farmer_helper(farmer)
-    return None
-
-
-def delete_farmer(db, uuid: str) -> bool:
-    result =  db.delete_one({"f_uuid": uuid})
-    return result.deleted_count > 0

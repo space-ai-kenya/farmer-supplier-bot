@@ -10,14 +10,14 @@ class MilkProduction(BaseModel):
     collection_amount: Optional[int]
     variance: Optional[int]
 
-    # @validator('collection_date')
-    # def validate_date(cls, v):
-    #     if v is not None or '':
-    #         try:
-    #             datetime.strptime(v, '%Y-%m-%d')
-    #             return v
-    #         except ValueError:
-    #             raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+    @validator('collection_date')
+    def validate_date(cls, v):
+        if v is not None or '':
+            try:
+                datetime.strptime(v, '%Y-%m-%d')
+                return v
+            except ValueError:
+                raise ValueError("Incorrect data format, should be YYYY-MM-DD")
    
 
 
@@ -25,11 +25,17 @@ class CropDetails(BaseModel):
     mainCrop: Optional[str]
     rotationCrops: Optional[List[str]]
 
+class Vaccination(BaseModel):
+    vaccine_name: str
+    vaccination_date: str
+    dosage: float
+    cow_id: str
 
 class LivestockDetails(BaseModel):
     numberOfCows: Optional[int]
     milkProduction: Optional[List[MilkProduction]]
-
+    vaccinations: Optional[List[Vaccination]]
+    
 class FarmingDetails(BaseModel):
     typeOfFarming: Optional[str]
     farmSize: Optional[int]

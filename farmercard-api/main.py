@@ -3,20 +3,23 @@ from fastapi.encoders import jsonable_encoder
 import uvicorn
 import logging
 from fastapi.middleware.cors import CORSMiddleware
-
+from typing import List, Optional
 from db.database import farmer_collection, client
 from db.models import (
     ResponseModel,
     ErrorResponseModel,
     FarmerSchema,
-    MilkProduction
+    MilkProduction,
+    Vaccination,
     # --------- updates
     # UpdateFarmer,
 )
 from db.queries import(
     add_farmer,
     retrieve_all_farmers,
-    add_milk_production
+    add_milk_production,
+    add_num_cows,
+    add_vaccinations,
 )
 
 
@@ -48,7 +51,6 @@ def read_root():
     return {"message": "Hello World"}
 
 
-
 @app.post("/create_farmcard/", response_description="Add new farmer")
 def create_farmer(farmer: FarmerSchema):
     farmer = jsonable_encoder(farmer)
@@ -64,42 +66,23 @@ def list_farmers():
 
 
 # FastAPI route to add milk production record
-@app.post("/farmer/{p_number}/add_milk_production")
+@app.post("/farmer/add_milk_production")
 async def add_milk_production_route(p_number: str, milk_production: MilkProduction):
     print(milk_production)
     add_milk_production(db=farmer_collection,p_number=p_number, milk_production=milk_production)
     return {"message": "Milk production record added successfully"}
 
-# @app.get("/farmers/", response_description="List all farmers", response_model=List[FarmerSchema])
-#  def list_farmers():
-#     farmers =  retrieve_all_farmers()
-#     if farmers:
-#         return farmers
-#     return []
+@app.post("/farmer/add_num_of_cows")
+async def add_farmer_cows(p_number: str, cows:int):
+    data = add_num_cows(db=farmer_collection,p_number=p_number,cows=cows)
+    print(data)
+    return {"message": data}
 
-# @app.get("/farmers/{uuid}", response_description="Get a single farmer", response_model=FarmerSchema)
-#  def get_farmer(uuid):
-#     farmer =  retrieve_farmer_by_uuid(uuid)
-#     if farmer:
-#         return farmer
-#     raise HTTPException(status_code=404, detail="Farmer not found")
-
-# @app.put("/farmers/{uuid}", response_description="Update a farmer", response_model=ResponseModel)
-#  def update_farmer_data(uuid: str, req: UpdateFarmer = Body(...)):
-#     req = {k: v for k, v in req.dict().items() if v is not None}
-#     updated_farmer =  update_farmer_by_uuid(uuid, req)
-#     if updated_farmer:
-#         return ResponseModel(data="Farmer with UUID: {} has been updated successfully".format(uuid), code=200, message="Farmer updated successfully")
-#     raise HTTPException(status_code=404, detail="There was an error updating the farmer data.")
-
-# @app.delete("/farmers/{uuid}", response_description="Delete a farmer", response_model=ResponseModel)
-#  def delete_farmer_data(uuid: str):
-#     deleted_farmer =  delete_farmer(uuid)
-#     if deleted_farmer:
-#         return ResponseModel(data="Farmer with UUID: {} removed".format(uuid),code=200,message="Farmer deleted successfully")
-#     raise HTTPException(status_code=404, detail="Farmer not found")
-
-
+@app.post("/farmer/add_cows_vacination")
+async def add_cows_vacination(p_number: str, vaccinations:List[Vaccination]):
+    data = add_vaccinations(db=farmer_collection,p_number=p_number,vaccinations=jsonable_encoder(vaccinations))
+    print(data)
+    return {"message": data}
 
 
 
