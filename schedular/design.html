@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scheduler</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <style>
+        .schedule-card {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container my-5">
+        <h1 class="text-center mb-4">Scheduler</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Create Schedule</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{{ url_for('create_schedule') }}">
+                            <div class="form-group">
+                                <label for="activity_name">Activity Name</label>
+                                <input type="text" class="form-control" id="activity_name" name="activity_name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="interval_type">Interval Type</label>
+                                <select class="form-control" id="interval_type" name="interval_type" required>
+                                    <option value="1">Daily</option>
+                                    <option value="2">Weekly</option>
+                                    <option value="3">Bi-Weekly</option>
+                                    <option value="4">Monthly</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="interval_value">Interval Value</label>
+                                <input type="number" class="form-control" id="interval_value" name="interval_value" min="1" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="start_date">Start Date</label>
+                                <input type="date" class="form-control" id="start_date" name="start_date" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Create Schedule</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h3>Schedules</h3>
+               
+            </div>
+        </div>
+    </div>
+</body>
+</html>
