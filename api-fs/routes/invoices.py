@@ -17,7 +17,7 @@ def parse_order_description(order_desc):
     pattern = re.compile(r'(\d+\s?(kg|kgs|bag(s?)|box(es?)|lb|lbs|pound(s?)|gram(s?)|gm)\s?of)')
     
     items = order_desc.split(',')
-    parsed_items = [["Item", "Quantity/Weight"]]
+    parsed_items = [["Items - Products", "Quantity/Weight"]]
     for item in items:
         match = pattern.search(item)
         if match:
@@ -55,16 +55,21 @@ def generate_invoice(order_details, filename):
     # Invoice header
     heading_style = styles['Heading1']
     heading_style.alignment = TA_CENTER
-    header = Paragraph('SpaceAI Marketplace - Farmer Invoice', heading_style)
+    header = Paragraph('SpaceAI Marketplace - Farmer Order', heading_style)
     flowables.append(header)
+    
+    #order Date
+    order_date_str = order_details.Order.orderDate.strftime("%Y-%m-%d %I:%M %p")
 
     # Order and Farmer details
     order_info = Paragraph(f'''
-    <b>Order ID:</b> {order_details.Order.orderID}<br/>
-    <b>Date:</b> {order_details.Order.orderDate.strftime("%Y-%m-%d")}<br/>
-    <b>Farmer Name:</b> {order_details.Farmer.name}<br/>
-    <b>Farmer Phone:</b> {order_details.Farmer.phone}<br/>
-    <b>Farmer Location:</b> {order_details.Farmer.location}<br/>
+    <br/>
+    <b>Order Number:</b> {order_details.Order.o_uuid}<br/>
+    <b>Date:</b> {order_date_str}<br/>
+    <b>Farmer's Name:</b> {order_details.Farmer.name}<br/>
+    <b>Farmer's Phone:</b> {order_details.Farmer.phone}<br/>
+    <b>County:</b> {order_details.Farmer.county}<br/>
+    <b>Address/Location:</b> {order_details.Farmer.location}<br/>
     ''', styles['Normal'])
     flowables.append(order_info)
 
@@ -76,12 +81,12 @@ def generate_invoice(order_details, filename):
     # Create table for order items, using the parsed items
     table = Table(order_items, colWidths=[4*inch, 3*inch], hAlign='CENTER')
     table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.lightslategray),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightseagreen),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.lightcyan),
+        ('BOTTOMPADDING', (0, 0), (-1, 10), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.lightsteelblue),
     ]))
     flowables.append(table)
 

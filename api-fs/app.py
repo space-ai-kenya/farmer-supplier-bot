@@ -23,6 +23,7 @@ from schema.farmer_schema import FarmerInSchema, FarmerOutSchema, OrderIn
 from database.db import db
 from routes.routes import get_order_details
 from routes.invoices import generate_invoice
+from database.models import generate_order_uuid
 from common.farmercard import FC_TEMPLATE
 load_dotenv()
 
@@ -95,7 +96,7 @@ def register_farmer(json_data):
     f_uuid = str(uuid.uuid4())
 
     # MySQL part 
-    reg_farmer = Farmer(f_uuid=f_uuid, name=json_data['name'], phone=json_data['phone'], location=json_data['location'])
+    reg_farmer = Farmer(f_uuid=f_uuid, name=json_data['name'], phone=json_data['phone'], county=json_data['county'], village=json_data['village'], location=json_data['location'])
     db.session.add(reg_farmer)
     try:
         db.session.commit()
@@ -144,22 +145,24 @@ def verify_farmer_registration(phone_num):
 @app.input(OrderIn, location='json')
 def submit_order(json_data):
 
+    o_uuid = generate_order_uuid()
+
     phone_num = json_data['phone']
     farmer = Farmer.query.filter_by(phone=phone_num).first()
     if not farmer:
         raise HTTPError(404, message='Farmer not found in the system. Please make sure you are registered.')
     
-    create_order = Order(farmerID=farmer.farmerID, order_desc =json_data['order_desc'])
+    create_order = Order(o_uuid=o_uuid, farmerID=farmer.farmerID, order_desc =json_data['order_desc'])
     db.session.add(create_order)
     db.session.commit()
 
     ### Ensures the 'invoices' directory exists
-    if not os.path.exists('invoices'):
-        os.makedirs('invoices')
+    if not os.path.exists('Orders'):
+        os.makedirs('Orders')
 
     ### for generating invoice below
     order_details = get_order_details(create_order.orderID)
-    invoice_filename = os.path.join('invoices', f"invoice_{create_order.orderID}.pdf")
+    invoice_filename = os.path.join('Orders', f"order_{create_order.o_uuid}.pdf")
     generate_invoice(order_details, filename=invoice_filename)
 
     return jsonify({"message": "Your order was placed successfully!", "Status": "success"}), 200

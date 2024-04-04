@@ -6,7 +6,9 @@ from datetime import datetime, timezone
 class FarmerInSchema(Schema):
     name = String(required=True)
     phone = String(required=True)
-    location = String(required=True)
+    location = String()
+    county = String()
+    village = String()
     #reg_date = DateTime(default=datetime.now(timezone.utc), required=False)
 
 class FarmerOutSchema(Schema):
