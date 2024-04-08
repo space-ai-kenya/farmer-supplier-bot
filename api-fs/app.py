@@ -19,7 +19,7 @@ import uuid
 
 # Local imports ------------------------------------------------
 from database.models import Farmer, Order
-from schema.farmer_schema import FarmerInSchema, FarmerOutSchema, OrderIn
+from schema.farmer_schema import FarmerInSchema, FarmerOutSchema, OrderIn, CountylistOut
 from database.db import db
 from routes.routes import get_order_details
 from routes.invoices import generate_invoice
@@ -149,6 +149,7 @@ def submit_order(json_data):
 
     phone_num = json_data['phone']
     farmer = Farmer.query.filter_by(phone=phone_num).first()
+    
     if not farmer:
         raise HTTPError(404, message='Farmer not found in the system. Please make sure you are registered.')
     
@@ -169,6 +170,62 @@ def submit_order(json_data):
 
 
 
+@app.get('/county_list')
+@app.output(CountylistOut(many=True))
+def get_countylist():
+    counties = [
+        {"name": "Baringo"},
+        {"name": "Bomet"},
+        {"name": "Bungoma"},
+        {"name": "Busia"},
+        {"name": "Elgeyo-Marakwet"},
+        {"name": "Embu"},
+        {"name": "Garissa"},
+        {"name": "Homa Bay"},
+        {"name": "Isiolo"},
+        {"name": "Kajiado"},
+        {"name": "Kakamega"},
+        {"name": "Kericho"},
+        {"name": "Kiambu"},
+        {"name": "Kilifi"},
+        {"name": "Kirinyaga"},
+        {"name": "Kisii"},
+        {"name": "Kisumu"},
+        {"name": "Kitui"},
+        {"name": "Kwale"},
+        {"name": "Laikipia"},
+        {"name": "Lamu"},
+        {"name": "Machakos"},
+        {"name": "Makueni"},
+        {"name": "Mandera"},
+        {"name": "Marsabit"},
+        {"name": "Meru"},
+        {"name": "Migori"},
+        {"name": "Mombasa"},
+        {"name": "Murang'a"},
+        {"name": "Nairobi City"},
+        {"name": "Nakuru"},
+        {"name": "Nandi"},
+        {"name": "Narok"},
+        {"name": "Nyamira"},
+        {"name": "Nyandarua"},
+        {"name": "Nyeri"},
+        {"name": "Samburu"},
+        {"name": "Siaya"},
+        {"name": "Taita-Taveta"},
+        {"name": "Tana River"},
+        {"name": "Tharaka-Nithi"},
+        {"name": "Trans-Nzoia"},
+        {"name": "Turkana"},
+        {"name": "Uasin Gishu"},
+        {"name": "Vihiga"},
+        {"name": "Wajir"},
+        {"name": "West Pokot"}
+    ]
+    return counties
+
+
+
 #https://www.reddit.com/r/flask/comments/15lzkxx/i_have_tunneled_my_flask_app_to_ngrok_that_now_is/
 #https://stackoverflow.com/questions/29458548/can-you-add-https-functionality-to-a-python-flask-web-server
 
@@ -178,4 +235,6 @@ if __name__ == "__main__":
         db.create_all()
     app.run(debug=True)
 
-# my custom ngrok endpoint https://f7123d742f2c9ee7.ngrok.app
+
+# my custom ngrok endpoint     
+# https://f7123d742f2c9ee7.ngrok.app

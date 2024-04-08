@@ -5,34 +5,34 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER
-import google.generativeai as genai
-import json
+import re
+import spacy
+from spacy.matcher import Matcher
+
 
 ## --------- Local imports ---------------
 #from routes import parse_order_description
 from common.getfilepath import file_path
 
-## This function helps to filter the orders using GEMINI
+## This function helps to filter the orders and checks for regular expressions regarding weight/quantities. Very Primitive way of doing NLP. WIP
+def parse_order_description(order_desc):
 
-GOOGLE_API_KEY ='AIzaSyByEHWnU4grVOfuRUgdXB0gk93v-yWKfAs'
-genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel('gemini-pro')
-
-def gemini_parsed_order(order_desc):
-    schema = """{"Products":["put the list of products"],"Weight":["put the list of weight"],"Quantity":["put the list of quantity"]}"""
-    pre_prompt = f"Given the following order(s) {order_desc} FILTER and SORT INTELLIGENTLY and return the products ordered and their weight and quantities. If the order has multiple products then each of them should be sorted with their weights and requested quantities. Return in the following example :{schema}"
-    response = model.generate_content(pre_prompt)
-
-    if response.parts:
-        order_details = json.loads(response.text)  # Assuming the response.text is a JSON string
-        # Convert the order details into a format suitable for Table creation in ReportLab
-        table_data = [["Product", "Weight", "Quantity"]]  # Header row
-        for product, weight, quantity in zip(order_details["Products"], order_details["Weight"], order_details["Quantity"]):
-            table_data.append([product, weight, quantity])
-        return table_data
-    else:
-        return [["Product", "Weight", "Quantity"]]  # Return only the header row if no valid content is generated
-
+    pattern = re.compile(r'(\d+\s?(kg|kgs|bag(s?)|box(es?)|lb|lbs|pound(s?)|gram(s?)|gm)\s?of)')
+    
+    items = order_desc.split(',')
+    parsed_items = [["Products", "Weight","Quantity"]]
+    for item in items:
+        match = pattern.search(item)
+        if match:
+            quantity = match.group(1).rstrip(' of')  # To Remove ' of' from the end of the quantity string
+            
+            name = pattern.sub('', item).strip()
+            parsed_items.append([name.capitalize(), quantity])
+        else:
+            # If no match, assume the entire string is the item name
+            parsed_items.append([item.strip().capitalize(), ''])
+    
+    return parsed_items
 
 
 
@@ -81,19 +81,18 @@ def generate_invoice(order_details, filename):
     flowables.append(Spacer(1, 12))  # Add some space before listing items
 
     # Use the adjusted parse_order_description function here
-    final_order = gemini_parsed_order(order_details.Order.order_desc)
+    order_items = parse_order_description(order_details.Order.order_desc)
 
-# Create table for order items, using the parsed items
-    table = Table(final_order, colWidths=[4*inch, 3*inch,2*inch], hAlign='CENTER')
+    # Create table for order items, using the parsed items
+    table = Table(order_items, colWidths=[4*inch, 3*inch,2*inch], hAlign='CENTER')
     table.setStyle(TableStyle([
-    ('BACKGROUND', (0, 0), (-1, 0), colors.lightseagreen),
-    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    ('BOTTOMPADDING', (0, 0), (-1, 10), 12),
-    ('BACKGROUND', (0, 1), (-1, -1), colors.lightsteelblue),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightseagreen),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 10), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.lightsteelblue),
     ]))
     flowables.append(table)
 
     doc.build(flowables)
-

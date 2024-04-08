@@ -19,3 +19,6 @@ class FarmerOutSchema(Schema):
 class OrderIn(Schema):
     phone = String(required=True)
     order_desc = String(required=True)
+
+class CountylistOut(Schema):
+    name=String()
