@@ -81,7 +81,6 @@ async def add_farmer_cows(p_number: str, cows:int):
 @app.post("/farmer/add_cows_vacination")
 async def add_cows_vacination(p_number: str, vaccinations:List[Vaccination]):
     data = add_vaccinations(db=farmer_collection,p_number=p_number,vaccinations=jsonable_encoder(vaccinations))
-    print(data)
     return {"message": data}
 
 
