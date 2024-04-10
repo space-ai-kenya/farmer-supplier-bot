@@ -1,33 +1,17 @@
 from fastapi import FastAPI,Depends,Body, HTTPException,BackgroundTasks
-from fastapi.encoders import jsonable_encoder
 import uvicorn
 import logging
-from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Optional
-from db.database import get_farmer_collection,get_database
+from db.database import get_database
 from pymongo.collection import Collection
-from db.models import (
-    ResponseModel,
-    ErrorResponseModel,
-    FarmerSchema,
-    Vaccination,
-    CowCard
-    # --------- updates
-    # UpdateFarmer,
-)
-from db.queries import(
-    add_farmer,
-    retrieve_all_farmers,
-    # add_milk_production,
-    add_num_cows,
-    add_vaccinations,
-)
-
+from bson import ObjectId
 
 from routes.cow_card_route import cc_routes
 from routes.farm_card_route import fc_routes
 
-app = FastAPI()
+app = FastAPI(title="Farmer Management API",
+    description="API for managing farmer data",
+    version="1.0.0"
+)
 
 
 # incluse routes

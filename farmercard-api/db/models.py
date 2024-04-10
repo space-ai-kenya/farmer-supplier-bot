@@ -3,8 +3,10 @@ from pydantic import BaseModel,Field,validator
 from datetime import datetime
 from typing import Any
 import re 
-from .cow_card import CowCard
-
+from bson import ObjectId
+from .cow_card import (
+    CowCard,MilkProduction,MilkHealthReport
+)
 
 
 class CropDetails(BaseModel):
@@ -112,7 +114,17 @@ class ResponseModel(BaseModel):
     code: int
     message: str
 
+    class Config:
+        json_encoders = {
+            ObjectId: str
+        }
+
 class ErrorResponseModel(BaseModel):
     error: str
     code: int
     message: str
+
+    class Config:
+        json_encoders = {
+            ObjectId: str
+        }
