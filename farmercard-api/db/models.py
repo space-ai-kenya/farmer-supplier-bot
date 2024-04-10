@@ -3,22 +3,8 @@ from pydantic import BaseModel,Field,validator
 from datetime import datetime
 from typing import Any
 import re 
+from .cow_card import CowCard
 
-
-class MilkProduction(BaseModel):
-    collection_date: Optional[str]
-    collection_amount: Optional[int]
-    variance: Optional[int]
-
-    @validator('collection_date')
-    def validate_date(cls, v):
-        if v is not None or '':
-            try:
-                datetime.strptime(v, '%Y-%m-%d')
-                return v
-            except ValueError:
-                raise ValueError("Incorrect data format, should be YYYY-MM-DD")
-   
 
 
 class CropDetails(BaseModel):
@@ -33,8 +19,8 @@ class Vaccination(BaseModel):
 
 class LivestockDetails(BaseModel):
     numberOfCows: Optional[int]
-    milkProduction: Optional[List[MilkProduction]]
     vaccinations: Optional[List[Vaccination]]
+    cow_card: Optional[CowCard]
     
 class FarmingDetails(BaseModel):
     typeOfFarming: Optional[str]
