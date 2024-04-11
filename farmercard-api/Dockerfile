@@ -16,7 +16,7 @@ COPY requirements.txt .
 RUN pip install -U setuptools pip \
     && pip uninstall bson \
     && pip install -r requirements.txt \
-    && pip install fastapi uvicorn
+    && pip install 'pydantic<2'
 
 RUN addgroup -g $GROUP_ID www
 RUN adduser -D -u $USER_ID -G www www -s /bin/sh

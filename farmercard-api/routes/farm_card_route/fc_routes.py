@@ -38,8 +38,8 @@ def read_root():
 
 
 @farm_card_router.post("/create_farmcard", response_description="Add new farmer")
-def create_farmer(farmer: FarmerSchema,db: Collection = Depends(get_farmer_collection)):
-    new_farmer = create_farmer(db, farmer_data=jsonable_encoder(farmer))
+def create_farmer_card(farmer: FarmerSchema,db: Collection = Depends(get_farmer_collection)):
+    new_farmer = create_farmer(db, farmer)
     return new_farmer
 
 @farm_card_router.get("/all_farmers", response_description="List all farmers")
@@ -54,16 +54,17 @@ async def add_farmer_cows(p_number: str, cows:int,db: Collection = Depends(get_f
     print(data)
     return {"message": data}
 
-@farm_card_router.put("/farmer/{f_uuid}", response_model=ResponseModel)
+@farm_card_router.put("/farmer/{f_uuid}/{phone_no}", response_model=ResponseModel)
 async def update_single_farmer(
     f_uuid: str,
     farmer: FarmerSchema,
-   db: Collection = Depends(get_farmer_collection)
+    phone_no:str,
+    db: Collection = Depends(get_farmer_collection)
 ):
-    data = update_farmer(db,f_uuid,farmer)
-    return 
+    data = update_farmer(db,f_uuid,phone_no,farmer)
+    return data
 
 @farm_card_router.post("/add_cows_vacination")
 async def add_cows_vacination(p_number: str, vaccinations:List[Vaccination],db: Collection = Depends(get_farmer_collection)):
-    data = add_vaccinations(db,p_number=p_number,vaccinations=jsonable_encoder(vaccinations))
-    return {"message": data}
+    response = add_vaccinations(db,p_number=p_number,vaccinations=vaccinations)
+    return response

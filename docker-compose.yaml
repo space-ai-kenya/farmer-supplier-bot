@@ -73,8 +73,8 @@ services:
   #   networks:
   #     - spaceai-fmproj-network
   
-  farmercard-api:
-    container_name: farmercard-api
+  farmercard_api:
+    container_name: farmercard_api
     build:
       context: ./farmercard-api/.
     ports:

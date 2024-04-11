@@ -3,7 +3,8 @@ from pydantic import BaseModel,Field,validator
 from datetime import datetime
 from typing import Any
 import re 
-from bson import ObjectId
+import json
+from bson.objectid import ObjectId
 from .cow_card import (
     CowCard,MilkProduction,MilkHealthReport
 )
@@ -86,6 +87,7 @@ class FarmerSchema(BaseModel):
     f_uuid: Optional[str]
     PhoneNumber: Optional[str]
     farmer_Card: FarmerCard
+
 
     # @validator('f_uuid')
     # def validate_uuid(cls, v):

@@ -25,15 +25,29 @@ class ReproductiveHealth(BaseModel):
     pregnancy_status: str
     calving_history: List[str]
 
+class MilkComponent(BaseModel):
+    fat: Optional[float]
+    protein: Optional[float]
+    lactose: Optional[float]
+    solids_not_fat: Optional[float]
+    total_solids: Optional[float]
+
 class MilkHealthReport(BaseModel):
-    milk_components: Optional[dict]  # fat, protein, etc.
     somatic_cell_count: Optional[int]
+    milk_components: Optional[MilkComponent]
     fat_percentage: Optional[float]
     protein_percentage: Optional[float]
+
+    # @validator('fat_percentage', 'protein_percentage')
+    # def check_percentage(cls, v):
+    #     if v < 0 or v > 100:
+    #         raise ValueError('Percentage must be between 0 and 100')
+    #     return v
 
 class MilkProduction(BaseModel):
     milking_date: Optional[str]
     milk_yield: Optional[float]
+    variance: Optional[float]
     milk_health: Optional[MilkHealthReport]
 
 
@@ -76,7 +90,7 @@ class CowCard(BaseModel):
     identification_info: IdentificationInfo
     health_records: Optional[List[HealthEvent]]
     reproductive_records: Optional[ReproductiveHealth]
-    milk_production_data: Optional[MilkProduction]
+    milk_production_data: Optional[List[MilkProduction]]
     feeding_and_nutrition: Optional[FeedingAndNutrition]
     calving_information: Optional[CalvingInformation]
     treatment_records: Optional[List[TreatmentRecord]]

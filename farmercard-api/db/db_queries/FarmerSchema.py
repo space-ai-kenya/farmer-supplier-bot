@@ -10,12 +10,29 @@ from db.models import (
     ResponseModel,
     ErrorResponseModel
 )
-
+from fastapi.encoders import jsonable_encoder
+import json
 # ---------------- farmer
 
 def create_farmer(db,farmer: FarmerSchema):
     try:
-        result = db.insert_one(farmer.model_dump())
+        # Define the farmer data with empty sections
+        f_data = farmer.dict()
+        f_data["farmer_Card"]["farmingDetails"]["cropDetails"] = []
+        f_data["farmer_Card"]["farmingDetails"]["livestockDetails"].pop("cow_card")
+        f_data["farmer_Card"]["farmingDetails"]["livestockDetails"]["vaccinations"] = []
+        print(f_data)
+        f_data["farmer_Card"]["farmingDetails"].pop("landAndSoilInformation")
+        f_data["farmer_Card"]["farmingDetails"].pop("farmingPractices")
+        f_data["farmer_Card"]["farmingDetails"].pop("financialInformation")
+        f_data["farmer_Card"]["farmingDetails"].pop("infrastructure")
+        f_data["farmer_Card"]["farmingDetails"].pop("challengesAndConcerns")
+        f_data["farmer_Card"]["farmingDetails"].pop("governmentAssistanceAndSubsidies")
+        f_data["farmer_Card"]["farmingDetails"].pop("trainingAndEducation")
+        f_data["farmer_Card"]["farmingDetails"].pop("updatesAndNotes")
+        f_data["farmer_Card"]["farmingDetails"].pop("nextStepsAndRecommendations")
+        logging.info(f_data)
+        result = db.insert_one(f_data)
         return ResponseModel(data=str(result.inserted_id), code=201, message="Farmer created successfully")
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating farmer")
@@ -24,6 +41,7 @@ def create_farmer(db,farmer: FarmerSchema):
 def retrieve_all_farmers(db, skip: int = 0, limit: int = 10):
     try:
         farmers = list(db.find({}, skip=skip, limit=limit))
+        # logging.info(farmers)
         return ResponseModel(data=farmers, code=200, message="Farmers retrieved successfully")
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error retrieving farmers")
@@ -32,20 +50,25 @@ def get_farmer(db,f_uuid: str):
     try:
         farmer = db.find_one({"f_uuid": f_uuid})
         if farmer:
-            return ResponseModel(data=farmer, code=200, message="Farmer found")
+            return ResponseModel(data=json.dumps(farmer), code=200, message="Farmer found")
         else:
             return ResponseModel(data=None, code=404, message="Farmer not found")
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error retrieving farmer")
 
-def update_farmer(db,f_uuid: str, farmer: FarmerSchema):
+def update_farmer(db, f_uuid: str,phone_no:str, farmer_data: FarmerSchema):
     try:
-        result = db.update_one({"f_uuid": f_uuid}, {"$set": farmer.model_dump()})
-        if result.modified_count > 0:
+        # Create a new FarmerSchema instance with the updated f_uuid
+        updated_farmer_data = farmer_data.copy(update={'f_uuid': f_uuid,"PhoneNumber":phone_no})
+        filter_query = {"f_uuid": f_uuid}
+        update_query = {"$set": updated_farmer_data.dict()}
+        result = db.update_one(filter_query, update_query)
+        if result.matched_count  > 0:
             return ResponseModel(data=None, code=200, message="Farmer updated successfully")
         else:
             return ResponseModel(data=None, code=404, message="Farmer not found")
     except Exception as e:
+        logging.error(f"Error updating farmer: {str(e)}")
         return ErrorResponseModel(error=str(e), code=500, message="Error updating farmer")
 
 def delete_farmer(db,f_uuid: str):
