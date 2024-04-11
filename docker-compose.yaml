@@ -1,28 +1,6 @@
 version: '3.8'
 
-
 services:
-  # ----------- database services
-  redis:
-    image: redis:latest
-    container_name: redis_db
-    networks:
-      - spaceai-fmproj-network
-    ports:
-      - "6379:6379"
-
-  postgres:
-    image: postgres:latest
-    container_name: postgres_db
-    environment:
-      POSTGRES_DB: mydatabase
-      POSTGRES_USER: myuser
-      POSTGRES_PASSWORD: mypassword
-    networks:
-      - spaceai-fmproj-network
-    ports:
-      - "5432:5432"
-
   mongodb:
     image: mongo:latest
     container_name: mongodb
@@ -40,6 +18,7 @@ services:
         target: /data/db
     networks:
       - spaceai-fmproj-network
+   
 
   mysql:
     image: mysql:latest
@@ -57,7 +36,7 @@ services:
       - "3306:3306"
     restart: always
   
-  # ----------- code microservice-services services
+  ## ----------- code microservice-services services
   api_fs:
     container_name: api_fs
     build:
@@ -73,14 +52,14 @@ services:
     networks:
       - spaceai-fmproj-network
   
-  api_ew:
-    container_name: api_ew
+  farmercard_api:
+    container_name: farmercard_api
     build:
-      context: ./api-ew/.
+      context: ./farmercard-api/.
     ports:
       - "8086:8086"
     volumes: 
-      - ./api-ew/.:/var/www/.
+      - ./farmercard-api/.:/var/www/.
     command: >
       sh -c "python main.py"
     depends_on:
@@ -93,4 +72,3 @@ networks:
   spaceai-fmproj-network:
     driver: bridge
     
-
