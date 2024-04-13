@@ -3,13 +3,14 @@ from bson import ObjectId
 import logging
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
-from db.models import (
+from db.schemas.farm_card_schema import (
     FarmingDetails,
     LandAndSoilInformation,
+)
+from db.schemas.response_schema import (
     ResponseModel,
     ErrorResponseModel
 )
-
 
 def get_farming_details(db, f_uuid: str):
     try:

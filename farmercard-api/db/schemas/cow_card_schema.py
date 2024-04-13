@@ -7,11 +7,35 @@ class Record(BaseModel):
     value: str
 
 class IdentificationInfo(BaseModel):
-    unique_id: str  # Unique identification number or RFID tag
+    """
+        Body condition scores (BCS) are an indirect estimate of energy balance. 
+        A score of 1 denotes a very thin cow, 
+        while 5 denotes an excessively fat cow, and 3 is an average body condition
+    """
+    unique_id: Optional[str]  # Unique identification number or RFID tag
+    birth_date: Optional[str]
+    age: Optional[int]
+    breed: Optional[str]
+    bcs: Optional[str]
+    average_weight: Optional[str]
+    colour: Optional[str]
+    origin: Optional[str]
 
-class HealthEvent(BaseModel):
-    event_type: str
-    event_date: str
+
+class VaccineRecord(BaseModel):
+    vaccine_name: str
+    date_administered: Optional[str]
+    next_due_date: Optional[str]
+
+class MedicalTreatment(BaseModel):
+    treatment_name: str
+    date_administered: Optional[str]
+    reason: str
+
+class HealthRecord(BaseModel):
+    vaccination_history: Optional[List[VaccineRecord]]
+    medical_treatments: Optional[List[MedicalTreatment]]
+    notes: Optional[str]
 
 class Calf(BaseModel):
     sex: Optional[str]
@@ -19,11 +43,25 @@ class Calf(BaseModel):
     weight_record: Optional[List[Record]]
     # https://www.facebook.com/Africanfarmresourcecentre/posts/estimating-the-weight-of-a-cow-using-the-tape-methodthe-tape-has-a-fairly-good-a/2422080981393790/
 
+class HeatCycle(BaseModel):
+    start_date:Optional[str]
+    end_date:Optional[str]
+
+class BreedingEvent(BaseModel):
+    date:Optional[str]
+    method: str  # e.g., "natural breeding", "artificial insemination"
+
+class CalvingEvent(BaseModel):
+    date:Optional[str]
+    calf_sex: str
+    calf_weight: float
+    notes: Optional[str]
+
 class ReproductiveHealth(BaseModel):
-    heat_cycles: List[str]
-    breeding_dates: List[str]
+    heat_cycles: List[HeatCycle]
+    breeding_events: List[BreedingEvent]
     pregnancy_status: str
-    calving_history: List[str]
+    calving_history: List[CalvingEvent]
 
 class MilkComponent(BaseModel):
     fat: Optional[float]
@@ -85,14 +123,15 @@ class BehavioralObservations(BaseModel):
 class EnvironmentalData(BaseModel):
     housing_conditions: Optional[str]
     climate: Optional[dict]  # temperature, humidity, ventilation, etc.
+   
 
 class CowCard(BaseModel):
     identification_info: IdentificationInfo
-    health_records: Optional[List[HealthEvent]]
-    reproductive_records: Optional[ReproductiveHealth]
     milk_production_data: Optional[List[MilkProduction]]
-    feeding_and_nutrition: Optional[FeedingAndNutrition]
-    calving_information: Optional[CalvingInformation]
+    health_records: Optional[List[HealthRecord]]
+    reproductive_records: Optional[List[ReproductiveHealth]]
+    calving_information: Optional[List[CalvingInformation]]
+    feeding_and_nutrition: Optional[List[FeedingAndNutrition]]
     treatment_records: Optional[List[TreatmentRecord]]
     laboratory_results: Optional[LaboratoryResults]
     body_measurements: Optional[BodyMeasurements]

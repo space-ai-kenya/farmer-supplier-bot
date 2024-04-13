@@ -3,15 +3,19 @@ from bson import ObjectId
 import logging
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
-from db.models import (
+from db.schemas.farm_card_schema import (
     FarmerSchema,
-    CowCard,
-    FarmingDetails,
-    Vaccination,
-    MilkProduction,
-    # -----------------------
+)
+
+from db.schemas.response_schema import (
     ResponseModel,
     ErrorResponseModel
+)
+
+from db.schemas.cow_card_schema import (
+    CowCard,
+    VaccineRecord,
+    MilkProduction
 )
 
 # -------------------- Cow Card
@@ -150,28 +154,23 @@ def add_milk_production_data(db, f_uuid: str, cow_id: str, milk_production_data:
 
 
 
-
-
-
-
-
 # -------------------- vacinations
-def create_vaccination(db, f_uuid: str, vaccination: Vaccination) -> ResponseModel:
+def create_vaccination(db, f_uuid: str, vaccination: VaccineRecord) -> ResponseModel:
     try:
         farmer = db.find_one({"f_uuid": f_uuid})
         if farmer:
-            if "vaccinations" not in farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]:
-                farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["vaccinations"] = []
-            farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["vaccinations"].append(vaccination.dict())
+            if "VaccineRecords" not in farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]:
+                farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["VaccineRecords"] = []
+            farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["VaccineRecords"].append(VaccineRecord.dict())
             result = db.update_one({"f_uuid": f_uuid}, {"$set": farmer})
             if result.modified_count > 0:
-                return ResponseModel(data=str(result.upserted_id), code=201, message="Vaccination created successfully")
+                return ResponseModel(data=str(result.upserted_id), code=201, message="VaccineRecord created successfully")
             else:
                 return ResponseModel(data=None, code=404, message="Farmer not found")
         else:
             return ResponseModel(data=None, code=404, message="Farmer not found")
     except Exception as e:
-        return ErrorResponseModel(error=str(e), code=500, message="Error creating vaccination")
+        return ErrorResponseModel(error=str(e), code=500, message="Error creating VaccineRecord")
 
 def get_vaccinations(db, f_uuid: str) -> ResponseModel:
     try:
@@ -184,7 +183,7 @@ def get_vaccinations(db, f_uuid: str) -> ResponseModel:
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error retrieving vaccinations")
 
-def update_vaccination(db, f_uuid: str, cow_id: str, vaccination: Vaccination) -> ResponseModel:
+def update_vaccination(db, f_uuid: str, cow_id: str, vaccination: VaccineRecord) -> ResponseModel:
     try:
         farmer = db.find_one({"f_uuid": f_uuid})
         if farmer:

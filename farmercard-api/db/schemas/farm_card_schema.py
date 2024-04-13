@@ -5,8 +5,11 @@ from typing import Any
 import re 
 import json
 from bson.objectid import ObjectId
-from .cow_card import (
-    CowCard,MilkProduction,MilkHealthReport
+from .crop_card_schema import (
+    CropCard
+)
+from .cow_card_schema import (
+    CowCard
 )
 
 
@@ -14,22 +17,29 @@ class CropDetails(BaseModel):
     mainCrop: Optional[str]
     rotationCrops: Optional[List[str]]
 
-class Vaccination(BaseModel):
-    vaccine_name: str
-    vaccination_date: str
-    dosage: float
-    cow_id: str
+
+class FeedInventory(BaseModel):
+    feed_type: str
+    quantity: float
+
+class Inventory(BaseModel):
+    record_date: str
+    num_cows: Optional[int]
+    num_bulls: Optional[int]
+    num_calves: Optional[int]
+    pregnant_cows: Optional[int]
+    non_pregnant_cows: Optional[int]
+    avg_milk_production_per_cow: Optional[float]
+    avg_weight_per_cow: Optional[float]
+    avg_age_of_cows: Optional[float]
+    num_deaths_in_past_month: Optional[int]
+    num_new_births_in_past_month: Optional[int]
+    feed_inventory: Optional[List[FeedInventory]]
 
 class LivestockDetails(BaseModel):
-    numberOfCows: Optional[int]
-    vaccinations: Optional[List[Vaccination]]
-    cow_card: Optional[CowCard]
+    animal_inventory: Optional[List[Inventory]]
+    cow_card: Optional[List[CowCard]]
     
-class FarmingDetails(BaseModel):
-    typeOfFarming: Optional[str]
-    farmSize: Optional[int]
-    cropDetails: Optional[CropDetails]
-    livestockDetails: Optional[LivestockDetails]
 
 class LandAndSoilInformation(BaseModel):
     soilType: Optional[str]
@@ -72,16 +82,19 @@ class NextStepsAndRecommendations(BaseModel):
     recommendationsForImprovement: Optional[str]
 
 class FarmerCard(BaseModel):
-    farmingDetails: Optional[FarmingDetails]
-    landAndSoilInformation: Optional[LandAndSoilInformation]
-    farmingPractices: Optional[FarmingPractices]
-    financialInformation: Optional[FinancialInformation]
-    infrastructure: Optional[Infrastructure]
-    challengesAndConcerns: Optional[ChallengesAndConcerns]
-    governmentAssistanceAndSubsidies: Optional[GovernmentAssistanceAndSubsidies]
-    trainingAndEducation: Optional[TrainingAndEducation]
-    updatesAndNotes: Optional[UpdatesAndNotes]
-    nextStepsAndRecommendations: Optional[NextStepsAndRecommendations]
+    typeOfFarming: Optional[str]
+    farmSize: Optional[int]
+    crop_card: Optional[List[CropCard]]
+    livestockDetails: Optional[LivestockDetails]
+    # landAndSoilInformation: Optional[LandAndSoilInformation]
+    # farmingPractices: Optional[FarmingPractices]
+    # financialInformation: Optional[FinancialInformation]
+    # infrastructure: Optional[Infrastructure]
+    # challengesAndConcerns: Optional[ChallengesAndConcerns]
+    # governmentAssistanceAndSubsidies: Optional[GovernmentAssistanceAndSubsidies]
+    # trainingAndEducation: Optional[TrainingAndEducation]
+    # updatesAndNotes: Optional[UpdatesAndNotes]
+    # nextStepsAndRecommendations: Optional[NextStepsAndRecommendations]
 
 class FarmerSchema(BaseModel):
     f_uuid: Optional[str]
@@ -111,22 +124,3 @@ class FarmerSchema(BaseModel):
 
 
 
-class ResponseModel(BaseModel):
-    data: Any
-    code: int
-    message: str
-
-    class Config:
-        json_encoders = {
-            ObjectId: str
-        }
-
-class ErrorResponseModel(BaseModel):
-    error: str
-    code: int
-    message: str
-
-    class Config:
-        json_encoders = {
-            ObjectId: str
-        }
