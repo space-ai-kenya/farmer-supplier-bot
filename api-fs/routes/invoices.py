@@ -1,10 +1,10 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 from reportlab.lib.units import inch
-from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 import google.generativeai as genai
 import json
 
@@ -20,18 +20,42 @@ model = genai.GenerativeModel('gemini-pro')
 
 def gemini_parsed_order(order_desc):
     schema = """{"Products":["put the list of products"],"Weight":["put the list of weight"],"Quantity":["put the list of quantity"]}"""
-    pre_prompt = f"Given the following order(s) {order_desc} FILTER and SORT INTELLIGENTLY and return the products ordered and their weight and quantities. If the order has multiple products then each of them should be sorted with their weights and requested quantities. Return in the following example :{schema}"
+    pre_prompt = f"""
+    Given the following order(s): {order_desc}
+
+    Intelligently filter and sort the order details with no mistakes, recheck the order to make sure you havent forgotten anything and return the following information:
+
+    - The products ordered (only the names of the products should appear in the products category/list, do not put the weights/quantity of the Products there.)
+    - The weight of each product (if available, otherwise set to 'N/A')
+    - The requested quantity of each product (if the quantity is not defined then by default assume its '1', if its defined assign the correct quantity.)
+
+    If the order has multiple products, make sure to present each product with its corresponding weight and quantity in a sorted manner.
+    Finally return the correct information in the following format:{schema}"""
+
     response = model.generate_content(pre_prompt)
 
     if response.parts:
         order_details = json.loads(response.text)  # Assuming the response.text is a JSON string
         # Convert the order details into a format suitable for Table creation in ReportLab
-        table_data = [["Product", "Weight", "Quantity"]]  # Header row
+        table_data = [["Products", "Weight", "Quantity"]]  # Header row
         for product, weight, quantity in zip(order_details["Products"], order_details["Weight"], order_details["Quantity"]):
             table_data.append([product, weight, quantity])
         return table_data
     else:
-        return [["Product", "Weight", "Quantity"]]  # Return only the header row if no valid content is generated
+        return [["Products", "Weight", "Quantity"]]  # Return only the header row if no valid content is generated
+
+
+
+
+### Returns the order inputted by the farmer in well clear manner for validation, then if approved is then used by 2nd gemini prompt.
+def nicely_formatted_order_gemini(order_desc):
+    pre_prompt = f"Given the following order(s) {order_desc} FILTER and SORT INTELLIGENTLY and return the products ordered and their respective weight and quantities. If the order has multiple products, then each of them should be sorted according to their weights and requested quantities. Return the final result in a simple bulleted format without any headings or categories."
+    response = model.generate_content(pre_prompt)
+
+    if response.parts:
+        return response.text
+    else:
+        return "No valid content generated."
 
 
 
@@ -51,49 +75,55 @@ def generate_invoice(order_details, filename):
     styles = getSampleStyleSheet()
     flowables = []
     
-    ## Invoice
-    logo = file_path(r"../images/spacelogo.png")
-    logo_img = Image(logo, width=2*inch, height=1*inch)  # Adjust width and height as needed
-    flowables.insert(0, logo_img) 
-
+    # Invoice logo
+    logo = file_path("../images/spacelogo.png")
+    logo_img = Image(logo, width=2*inch, height=1*inch)
+    flowables.append(logo_img)
+    
     # Invoice header
     heading_style = styles['Heading1']
     heading_style.alignment = TA_CENTER
-    header = Paragraph('SpaceAI Marketplace - Farmer Order', heading_style)
+    header = Paragraph("SpaceAI Marketplace - Farmer's Order", heading_style)
     flowables.append(header)
+
+     # Spacer-- adds space between
+    flowables.append(Spacer(1, 12))
+
+    # Formatting order and farmer details for better UI/UX
+    details_style = ParagraphStyle('DetailsStyle', parent=styles['Normal'], alignment=TA_LEFT, spaceAfter=10, leftIndent=10)
     
-    #order Date
     order_date_str = order_details.Order.orderDate.strftime("%Y-%m-%d %I:%M %p")
+    order_info_content = [
+        ["Order Number:", order_details.Order.o_uuid],
+        ["Date:", order_date_str],
+        ["Farmer's Name:", order_details.Farmer.name],
+        ["Farmer's Phone:", order_details.Farmer.phone],
+        ["County:", order_details.Farmer.county],
+        ["Village:", order_details.Farmer.village],
+        ["Address/Location:", order_details.Farmer.location]
+    ]
 
-    # Order and Farmer details
-    order_info = Paragraph(f'''
-    <br/>
-    <b>Order Number:</b> {order_details.Order.o_uuid}<br/>
-    <b>Date:</b> {order_date_str}<br/>
-    <b>Farmer's Name:</b> {order_details.Farmer.name}<br/>
-    <b>Farmer's Phone:</b> {order_details.Farmer.phone}<br/>
-    <b>County:</b> {order_details.Farmer.county}<br/>
-    <b>Vilage:</b> {order_details.Farmer.village}<br/>
-    <b>Address/Location:</b> {order_details.Farmer.location}<br/>
-    ''', styles['Normal'])
-    flowables.append(order_info)
+    for item in order_info_content:
+        flowables.append(Paragraph(f'<b>{item[0]}</b> {item[1]}', details_style))
 
-    flowables.append(Spacer(1, 12))  # Add some space before listing items
+    # Spacer for aesthetics
+    flowables.append(Spacer(1, 12))
 
-    # Use the adjusted parse_order_description function here
+    # Assuming final_order is returned from gemini_parsed_order and properly formatted
     final_order = gemini_parsed_order(order_details.Order.order_desc)
-
-# Create table for order items, using the parsed items
-    table = Table(final_order, colWidths=[4*inch, 3*inch,2*inch], hAlign='CENTER')
+    
+    # Table for order items
+    table = Table(final_order, colWidths=[4*inch, 3*inch, 2*inch], hAlign='CENTER')
     table.setStyle(TableStyle([
-    ('BACKGROUND', (0, 0), (-1, 0), colors.lightseagreen),
-    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-    ('BOTTOMPADDING', (0, 0), (-1, 10), 12),
-    ('BACKGROUND', (0, 1), (-1, -1), colors.lightsteelblue),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.lightgrey),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightseagreen),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('BOX', (0,0), (-1,-1), 0.5, colors.black)
     ]))
     flowables.append(table)
 
     doc.build(flowables)
-

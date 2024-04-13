@@ -96,3 +96,58 @@ def generate_invoice(order_details, filename):
     flowables.append(table)
 
     doc.build(flowables)
+
+
+
+
+    def generate_invoice(order_details, filename):
+    doc = SimpleDocTemplate(filename, pagesize=letter)
+    styles = getSampleStyleSheet()
+    flowables = []
+    
+    # Invoice logo
+    logo = "path/to/spacelogo.png"  # Update the path to your logo
+    logo_img = Image(logo, width=2*inch, height=1*inch)
+    flowables.append(logo_img)
+    
+    # Invoice header
+    heading_style = styles['Heading1']
+    heading_style.alignment = TA_CENTER
+    header = Paragraph('SpaceAI Marketplace - Farmer Order', heading_style)
+    flowables.append(header)
+
+     #order Date
+    order_date_str = order_details.Order.orderDate.strftime("%Y-%m-%d %I:%M %p")
+
+    # Order and Farmer details
+    order_info = Paragraph(f'''
+    <br/>
+    <b>Order Number:</b> {order_details.Order.o_uuid}<br/>
+    <b>Date:</b> {order_details.Order.orderDate}<br/>
+    <b>Farmer's Name:</b> {order_details.Farmer.name}<br/>
+    <b>Farmer's Phone:</b> {order_details.Farmer.phone}<br/>
+    <b>County:</b> {order_details.Farmer.county}<br/>
+    <b>Village:</b> {order_details.Farmer.village}<br/>
+    <b>Address/Location:</b> {order_details.Farmer.location}<br/>
+    ''', styles['Normal'])
+    flowables.append(order_info)
+    flowables.append(Spacer(1, 12))
+
+    # Use the adjusted parse_order_description function here
+    final_order = gemini_parsed_order(order_details.Order.order_desc)
+    
+    # Create table for order items
+    table = Table(final_order, colWidths=[4*inch, 3*inch, 2*inch], hAlign='CENTER')
+    table.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightseagreen),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.lightsteelblue),
+        ('BOX', (0,0), (-1,-1), 0.5, colors.black)
+    ]))
+    flowables.append(table)
+
+    doc.build(flowables)

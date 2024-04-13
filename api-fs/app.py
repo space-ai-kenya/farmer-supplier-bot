@@ -1,6 +1,6 @@
 from apiflask import APIFlask, Schema, HTTPError
 from flask_cors import CORS
-from flask import request, jsonify, render_template, url_for, session, redirect
+from flask import request, jsonify, render_template, url_for, session, redirect, send_file
 from flask_mysqldb import MySQL
 from flask_sqlalchemy import SQLAlchemy
 
@@ -19,12 +19,14 @@ import uuid
 
 # Local imports ------------------------------------------------
 from database.models import Farmer, Order
-from schema.farmer_schema import FarmerInSchema, FarmerOutSchema, OrderIn, CountylistOut
+from schema.farmer_schema import FarmerInSchema, FarmerOutSchema, OrderIn, CountylistOut, OrderformattingIn, OrderformattingOut
 from database.db import db
 from routes.routes import get_order_details
 from routes.invoices import generate_invoice
+from routes.invoices import nicely_formatted_order_gemini
 from database.models import generate_order_uuid
 from common.farmercard import FC_TEMPLATE
+
 load_dotenv()
 
 #set base directory of app.py
@@ -166,7 +168,21 @@ def submit_order(json_data):
     invoice_filename = os.path.join('Orders', f"order_{create_order.o_uuid}.pdf")
     generate_invoice(order_details, filename=invoice_filename)
 
-    return jsonify({"message": "Your order was placed successfully!", "Status": "success"}), 200
+    pdf_file = send_file(invoice_filename, as_attachment=True), 200
+    # Return the PDF file in the response
+    return pdf_file
+
+
+### Just takes an order from farmer and returns it in a better readable manner
+@app.post('/format_order')
+@app.input(OrderformattingIn)
+@app.output(OrderformattingOut)
+def format_order(json_data):
+    
+    order_desc = json_data['order_desc']
+    formatted_order = nicely_formatted_order_gemini(order_desc)
+    return {'formatted_order': formatted_order}
+
 
 
 
