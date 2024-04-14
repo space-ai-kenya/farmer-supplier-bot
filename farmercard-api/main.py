@@ -10,7 +10,10 @@ from routes.farm_card_route import fc_routes
 
 app = FastAPI(title="Farmer Management API",
     description="API for managing farmer data",
-    version="1.0.0"
+    version="1.0.0",
+    servers=[
+        {"url": "https://c744-41-90-71-64.ngrok-free.app"},
+    ],
 )
 
 
