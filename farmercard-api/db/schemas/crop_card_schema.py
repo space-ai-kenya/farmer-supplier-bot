@@ -31,14 +31,26 @@ class CropManagementRecord(BaseModel):
     activity_type: str
     description: str
 
+class HarvestDetails(BaseModel):
+    start_date: date
+    end_date: date
+    num_harvests: int
+    average_yield_per_harvest: float
+
+class YieldRecord(BaseModel):
+    harvest_details: HarvestDetails
+    total_yield: float
+    marketable_yield: float
+    waste_or_loss: float
+    quality_assessment: Optional[str]
+
 class CropCard(BaseModel):
     field_id: str
     crop_year: int
-    planting_details: List[PlantingDetails]
-    crop_management_records: List[CropManagementRecord]
+    planting_details: Optional[List[PlantingDetails]]
+    crop_management_records: Optional[List[CropManagementRecord]]
+    yield_records: Optional[List[YieldRecord]]
     irrigation_records: Optional[List[IrrigationRecord]]
     fertilizer_records: Optional[List[FertilizerRecord]]
     pest_management_records: Optional[List[PestManagementRecord]]
-    yield_summary: Optional[float]
-    quality_assessment: Optional[str]
-    notes: Optional[str]
+    notes: Optional[List[str]]

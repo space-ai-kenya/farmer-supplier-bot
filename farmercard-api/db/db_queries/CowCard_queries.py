@@ -3,222 +3,227 @@ from bson import ObjectId
 import logging
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
-from db.schemas.farm_card_schema import (
-    FarmerSchema,
-)
-
 from db.schemas.response_schema import (
     ResponseModel,
     ErrorResponseModel
 )
-
-from db.schemas.cow_card_schema import (
-    CowCard,
-    VaccineRecord,
-    MilkProduction
-)
-
 # -------------------- Cow Card
-def create_cow_card(db, f_uuid: str, cow_id: str):
+def create_cow_info(db, f_uuid: str, cow_data):
     """
-    Add a new cow card to the existing document.
-
-    Args:
-        db (MongoClient): MongoDB database client.
-        f_uuid (str): Unique identifier for the farmer.
-        cow_id (str): Unique identifier for the cow.
-
-    Returns:
-        ResponseModel or ErrorResponseModel: The response model with the updated document or an error.
+    Create a new cow identification information for the farmer.
     """
     try:
-        # Find the document by the f_uuid
+        # Check if the farmer exists
         farmer = db.find_one({"f_uuid": f_uuid})
+        if not farmer:
+            return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
 
-        if farmer:
-            # Update the document
-            query = {"f_uuid": f_uuid}
-            update = {"$push": {"farmer_Card.farmingDetails.livestockDetails.cow_card":CowCard.dict()}}
-            result = db.update_one(query, update)
+        # Check if the cow card section exists, if not, create it
+        if "cow_card" not in farmer["farmer_Card"]["livestockDetails"]:
+            db.update_one({"f_uuid": f_uuid}, {"$set": {"farmer_Card.livestockDetails.cow_card": []}})
 
-            if result.modified_count > 0:
-                updated_doc = db.find_one(query)
-                return ResponseModel(data=updated_doc, code=200, message="Cow card added successfully")
-            else:
-                return ErrorResponseModel(error=f"No document found for f_uuid: {f_uuid}", code=404, message="Document not found")
-        else:
-            return ErrorResponseModel(error=f"No document found for f_uuid: {f_uuid}", code=404, message="Farmer Not Found")
+
+        # Add the new cow identification information to the farmer's livestock details
+        cow_info = {
+            "identification_info": cow_data
+        }
+        farmer["farmer_Card"]["livestockDetails"]["cow_card"].append(cow_info)
+        db.update_one({"f_uuid": f_uuid}, {"$set": {"farmer_Card.livestockDetails.cow_card": farmer["farmer_Card"]["livestockDetails"]["cow_card"]}})
+        return ResponseModel(data=cow_info, code=201, message="Cow identification information created successfully")
     except Exception as e:
-        return ErrorResponseModel(error=str(e), code=500, message="Error adding cow card")
-
-def get_cow_card(db,f_uuid: str, cow_id: str) :
+        return ErrorResponseModel(error=str(e), code=500, message="Error creating cow identification information")
+    
+def create_milk_production_data(db, f_uuid: str, cow_id: str, milk_production_data):
+    """
+    Create a new milk production data for a cow.
+    """
     try:
+        # Check if the farmer exists
         farmer = db.find_one({"f_uuid": f_uuid})
-        if farmer:
-            cow_card = farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["cow_card"]
-            if cow_card and cow_card["identification_info"]["unique_id"] == cow_id:
-                return ResponseModel(data=cow_card, code=200, message="Cow card found")
-            else:
-                return ResponseModel(data=None, code=404, message="Cow card not found")
-        else:
-            return ResponseModel(data=None, code=404, message="Farmer not found")
-    except Exception as e:
-        return ErrorResponseModel(error=str(e), code=500, message="Error retrieving cow card")
+        if not farmer:
+            return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
 
-def update_cow_card(db,f_uuid: str, cow_id: str, cow_card: CowCard) :
-    try:
-        farmer = db.find_one({"f_uuid": f_uuid})
-        if farmer:
-            farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["cow_card"] = cow_card.dict()
-            result = db.update_one({"f_uuid": f_uuid}, {"$set": farmer})
-            if result.modified_count > 0:
-                return ResponseModel(data=None, code=200, message="Cow card updated successfully")
-            else:
-                return ResponseModel(data=None, code=404, message="Cow card not found")
-        else:
-            return ResponseModel(data=None, code=404, message="Farmer not found")
-    except Exception as e:
-        return ErrorResponseModel(error=str(e), code=500, message="Error updating cow card")
+        # Check if the cow card section exists, if not, create it
+        if "cow_card" not in farmer["farmer_Card"]["livestockDetails"]:
+            db.update_one({"f_uuid": f_uuid}, {"$set": {"farmer_Card.livestockDetails.cow_card": []}})
 
-def delete_cow_card(db,f_uuid: str, cow_id: str) :
-    try:
-        farmer = db.find_one({"f_uuid": f_uuid})
-        if farmer:
-            if "cow_card" in farmer["farmer_Card"]["farmingDetails"]["livestockDetails"] and farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["cow_card"]["identification_info"]["unique_id"] == cow_id:
-                farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["cow_card"] = None
-                result = db.update_one({"f_uuid": f_uuid}, {"$set": farmer})
-                if result.modified_count > 0:
-                    return ResponseModel(data=None, code=200, message="Cow card deleted successfully")
-                else:
-                    return ResponseModel(data=None, code=404, message="Cow card not found")
-            else:
-                return ResponseModel(data=None, code=404, message="Cow card not found")
-        else:
-            return ResponseModel(data=None, code=404, message="Farmer not found")
+        # Find the cow card with the given cow_id
+        cow_card_info = next((card for card in farmer["farmer_Card"]["livestockDetails"]["cow_card"] if card["identification_info"]["unique_id"] == cow_id), None)
+        if not cow_card_info:
+            return ErrorResponseModel(error="Cow card not found", code=404, message=f"Cow of id: {cow_id} does not exist")
+
+        # Check if the milk_production_data section exists, if not, create it
+        if "milk_production_data" not in cow_card_info:
+            cow_card_info["milk_production_data"] = []
+
+        # Add the new milk production data to the cow card
+        cow_card_info["milk_production_data"].append(milk_production_data)
+        db.update_one({"f_uuid": f_uuid, "farmer_Card.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+            {"$set": {"farmer_Card.livestockDetails.cow_card.$.milk_production_data": cow_card_info["milk_production_data"]}})
+        return ResponseModel(data=milk_production_data, code=201, message="Milk production data created successfully")
     except Exception as e:
-        return ErrorResponseModel(error=str(e), code=500, message="Error deleting cow card")
+        return ErrorResponseModel(error=str(e), code=500, message="Error creating milk production data")
+
+# ---------------------- Reproductive Health Queries ---------------------------------------------------
+def create_vaccination_history(db, f_uuid: str, cow_id: str, vaccination_record):
+    """
+    Create new vaccination history for a cow.
+    """
+    try:
+        # Check if the farmer exists
+        farmer = db.find_one({"f_uuid": f_uuid})
+        if not farmer:
+            return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
+
+        # Check if the cow card section exists, if not, create it
+        if "cow_card" not in farmer["farmer_Card"]["livestockDetails"]:
+            db.update_one({"f_uuid": f_uuid}, {"$set": {"farmer_Card.livestockDetails.cow_card": []}})
+
+        # Find the cow card with the given cow_id
+        cow_card = next((card for card in farmer["farmer_Card"]["livestockDetails"]["cow_card"] if card["identification_info"]["unique_id"] == cow_id), None)
+        if not cow_card:
+            return ErrorResponseModel(error="Cow card not found", code=404, message="Cow card does not exist")
+
+        # Check if the health_records section exists, if not, create it
+        if "health_records" not in cow_card:
+            cow_card["health_records"] = []
+
+        # Check if the vaccination_history section exists, if not, create it
+        if "vaccination_history" not in cow_card["health_records"][0]:
+            cow_card["health_records"][0]["vaccination_history"] = []
+
+        # Add the new vaccination history to the cow card
+        cow_card["health_records"][0]["vaccination_history"].extend(vaccination_record)
+        db.update_one({"f_uuid": f_uuid, "farmer_Card.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+                     {"$set": {"farmer_Card.livestockDetails.cow_card.$.health_records.0.vaccination_history": cow_card["health_records"][0]["vaccination_history"]}})
+        return ResponseModel(data=vaccination_record, code=201, message="Vaccination history created successfully")
+
+    except Exception as e:
+        return ErrorResponseModel(error=str(e), code=500, message="Error creating vaccination history")
+
+
+def create_heat_cycles(db, f_uuid: str, cow_id: str, heat_cycle):
+    """
+    Create new heat cycles for a cow.
+    """
+    try:
+        # Check if the farmer exists
+        farmer = db.find_one({"f_uuid": f_uuid})
+        if not farmer:
+            return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
+
+        # Check if the cow card section exists, if not, create it
+        if "cow_card" not in farmer["farmer_Card"]["livestockDetails"]:
+            farmer["farmer_Card"]["livestockDetails"]["cow_card"] = []
+
+        # Find the cow card with the given cow_id
+        cow_card = next((card for card in farmer["farmer_Card"]["livestockDetails"]["cow_card"] if card["identification_info"]["unique_id"] == cow_id), None)
+        if not cow_card:
+            return ErrorResponseModel(error="Cow card not found", code=404, message="Cow card does not exist")
+
+        # Check if the heat_cycles section exists, if not, create it
+        if "heat_cycles" not in cow_card["reproductive_records"]:
+            cow_card["reproductive_records"]["heat_cycles"] = []
+
+        # Add the new heat cycles to the cow card
+        cow_card["reproductive_records"]["heat_cycles"].extend(heat_cycles)
+        db.update_one({"f_uuid": f_uuid, "farmer_Card.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+                     {"$set": {"farmer_Card.livestockDetails.cow_card.$.reproductive_records.heat_cycles": cow_card["reproductive_records"]["heat_cycles"]}})
+        return ResponseModel(data=heat_cycles, code=201, message="Heat cycles created successfully")
+
+    except Exception as e:
+        return ErrorResponseModel(error=str(e), code=500, message="Error creating heat cycles")
+
+def create_breeding_events(db, f_uuid: str, cow_id: str, breeding_event):
+    """
+    Create new breeding events for a cow.
+    """
+    try:
+        # Check if the farmer exists
+        farmer = db.find_one({"f_uuid": f_uuid})
+        if not farmer:
+            return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
+
+        # Check if the cow card section exists, if not, create it
+        if "cow_card" not in farmer["farmer_Card"]["livestockDetails"]:
+            farmer["farmer_Card"]["livestockDetails"]["cow_card"] = []
+
+        # Find the cow card with the given cow_id
+        cow_card = next((card for card in farmer["farmer_Card"]["livestockDetails"]["cow_card"] if card["identification_info"]["unique_id"] == cow_id), None)
+        if not cow_card:
+            return ErrorResponseModel(error="Cow card not found", code=404, message="Cow card does not exist")
+
+        # Check if the breeding_events section exists, if not, create it
+        if "breeding_events" not in cow_card["reproductive_records"]:
+            cow_card["reproductive_records"]["breeding_events"] = []
+
+        # Add the new breeding events to the cow card
+        cow_card["reproductive_records"]["breeding_events"].extend(breeding_events)
+        db.update_one({"f_uuid": f_uuid, "farmer_Card.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+                     {"$set": {"farmer_Card.livestockDetails.cow_card.$.reproductive_records.breeding_events": cow_card["reproductive_records"]["breeding_events"]}})
+        return ResponseModel(data=breeding_events, code=201, message="Breeding events created successfully")
+
+    except Exception as e:
+        return ErrorResponseModel(error=str(e), code=500, message="Error creating breeding events")
+
+def create_pregnancy_status(db, f_uuid: str, cow_id: str, pregnancy_status: str):
+    """
+    Update the pregnancy status for a cow.
+    """
+    try:
+        # Check if the farmer exists
+        farmer = db.find_one({"f_uuid": f_uuid})
+        if not farmer:
+            return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
+
+        # Check if the cow card section exists, if not, create it
+        if "cow_card" not in farmer["farmer_Card"]["livestockDetails"]:
+            farmer["farmer_Card"]["livestockDetails"]["cow_card"] = []
+
+        # Find the cow card with the given cow_id
+        cow_card = next((card for card in farmer["farmer_Card"]["livestockDetails"]["cow_card"] if card["identification_info"]["unique_id"] == cow_id), None)
+        if not cow_card:
+            return ErrorResponseModel(error="Cow card not found", code=404, message="Cow card does not exist")
+
+        # Update the pregnancy status in the cow card
+        cow_card["reproductive_records"]["pregnancy_status"] = pregnancy_status
+        db.update_one({"f_uuid": f_uuid, "farmer_Card.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+                     {"$set": {"farmer_Card.livestockDetails.cow_card.$.reproductive_records.pregnancy_status": pregnancy_status}})
+        return ResponseModel(data=pregnancy_status, code=200, message="Pregnancy status updated successfully")
+
+    except Exception as e:
+        return ErrorResponseModel(error=str(e), code=500, message="Error updating pregnancy status")
+
+def create_calving_history(db, f_uuid: str, cow_id: str, calving_event):
+    """
+    Create new calving history for a cow.
+    """
+    try:
+        # Check if the farmer exists
+        farmer = db.find_one({"f_uuid": f_uuid})
+        if not farmer:
+            return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
+
+        # Check if the cow card section exists, if not, create it
+        if "cow_card" not in farmer["farmer_Card"]["livestockDetails"]:
+            farmer["farmer_Card"]["livestockDetails"]["cow_card"] = []
+
+        # Find the cow card with the given cow_id
+        cow_card = next((card for card in farmer["farmer_Card"]["livestockDetails"]["cow_card"] if card["identification_info"]["unique_id"] == cow_id), None)
+        if not cow_card:
+            return ErrorResponseModel(error="Cow card not found", code=404, message="Cow card does not exist")
+
+        # Check if the calving_history section exists, if not, create it
+        if "calving_history" not in cow_card["reproductive_records"]:
+            cow_card["reproductive_records"]["calving_history"] = []
+
+        # Add the new calving history to the cow card
+        cow_card["reproductive_records"]["calving_history"].extend(calving_event)
+        db.update_one({"f_uuid": f_uuid, "farmer_Card.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+                     {"$set": {"farmer_Card.livestockDetails.cow_card.$.reproductive_records.calving_history": cow_card["reproductive_records"]["calving_history"]}})
+        return ResponseModel(data=calving_event, code=201, message="Calving event History created successfully")
+    except Exception as e:
+        return ErrorResponseModel(error=str(e), code=500, message="Error creating calving history")
     
 
-# --------------------------- add milk production
-def add_milk_production_data(db, f_uuid: str, cow_id: str, milk_production_data: MilkProduction):
-    """
-    Add milk production data to the existing document.
 
-    Args:
-        db (MongoClient): MongoDB database client.
-        f_uuid (str): Unique identifier for the farmer.
-        cow_id (str): Unique identifier for the cow.
-        milk_production_data (MilkProduction): Milk production data to be added.
-
-    Returns:
-        ResponseModel or ErrorResponseModel: The response model with the updated document or an error.
-    """
-    try:
-        # Find the document by the f_uuid
-        farmer = db.find_one({"f_uuid": f_uuid})
-
-        if farmer:
-            # Find the cow_card with the given cow_id
-            cow_card = farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["cow_card"]
-            logging.info(cow_card)
-            if cow_card:
-                # logging.info(f"cow_cards: {cow_card}")
-                if cow_card["identification_info"]["unique_id"] == cow_id:
-                    logging.info(f"cow_card: {cow_id}")
-
-                    # Add the milk production data to the existing cow_card
-                    cow_card["milk_production_data"].append(milk_production_data.dict())
-
-                    # Update the document
-                    query = {"f_uuid": f_uuid}
-                    update = {"$set": {"farmer_Card.farmingDetails.livestockDetails.cow_card.milk_production_data": cow_card["milk_production_data"]}}
-                    result = db.update_one(query, update)
-                    logging.info(result)
-
-                    if result.modified_count > 0:
-                        updated_doc = db.find_one(query)
-                        return ResponseModel(data=updated_doc, code=200, message="Milk production data added successfully")
-            else:
-                # Add a new cow_card to the document
-                response = create_cow_card(db, f_uuid, cow_id)
-                if isinstance(response, ResponseModel):
-                    # Try adding the milk production data again
-                    return add_milk_production_data(db, f_uuid, cow_id, milk_production_data)
-                else:
-                    return response
-        else:
-            return ErrorResponseModel(error=f"No document found for f_uuid: {f_uuid}", code=404, message="Document not found")
-
-    except Exception as e:
-        return ErrorResponseModel(error=str(e), code=500, message="Error adding milk production data")
-
-
-
-# -------------------- vacinations
-def create_vaccination(db, f_uuid: str, vaccination: VaccineRecord) -> ResponseModel:
-    try:
-        farmer = db.find_one({"f_uuid": f_uuid})
-        if farmer:
-            if "VaccineRecords" not in farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]:
-                farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["VaccineRecords"] = []
-            farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["VaccineRecords"].append(VaccineRecord.dict())
-            result = db.update_one({"f_uuid": f_uuid}, {"$set": farmer})
-            if result.modified_count > 0:
-                return ResponseModel(data=str(result.upserted_id), code=201, message="VaccineRecord created successfully")
-            else:
-                return ResponseModel(data=None, code=404, message="Farmer not found")
-        else:
-            return ResponseModel(data=None, code=404, message="Farmer not found")
-    except Exception as e:
-        return ErrorResponseModel(error=str(e), code=500, message="Error creating VaccineRecord")
-
-def get_vaccinations(db, f_uuid: str) -> ResponseModel:
-    try:
-        farmer = db.find_one({"f_uuid": f_uuid})
-        if farmer:
-            vaccinations = farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["vaccinations"]
-            return ResponseModel(data=vaccinations, code=200, message="Vaccinations retrieved successfully")
-        else:
-            return ResponseModel(data=None, code=404, message="Farmer not found")
-    except Exception as e:
-        return ErrorResponseModel(error=str(e), code=500, message="Error retrieving vaccinations")
-
-def update_vaccination(db, f_uuid: str, cow_id: str, vaccination: VaccineRecord) -> ResponseModel:
-    try:
-        farmer = db.find_one({"f_uuid": f_uuid})
-        if farmer:
-            vaccinations = farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["vaccinations"]
-            for i, v in enumerate(vaccinations):
-                if v["cow_id"] == cow_id:
-                    vaccinations[i] = vaccination.dict()
-                    break
-            farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["vaccinations"] = vaccinations
-            result = db.update_one({"f_uuid": f_uuid}, {"$set": farmer})
-            if result.modified_count > 0:
-                return ResponseModel(data=None, code=200, message="Vaccination updated successfully")
-            else:
-                return ResponseModel(data=None, code=404, message="Vaccination not found")
-        else:
-            return ResponseModel(data=None, code=404, message="Farmer not found")
-    except Exception as e:
-        return ErrorResponseModel(error=str(e), code=500, message="Error updating vaccination")
-
-def delete_vaccination(db, f_uuid: str, cow_id: str) -> ResponseModel:
-    try:
-        farmer = db.find_one({"f_uuid": f_uuid})
-        if farmer:
-            vaccinations = farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["vaccinations"]
-            for i, v in enumerate(vaccinations):
-                if v["cow_id"] == cow_id:
-                    del vaccinations[i]
-                    farmer["farmer_Card"]["farmingDetails"]["livestockDetails"]["vaccinations"] = vaccinations
-                    result = db.update_one({"f_uuid": f_uuid}, {"$set": farmer})
-                    if result.modified_count > 0:
-                        return ResponseModel(data=None, code=200, message="Vaccination deleted successfully")
-                    else:
-                        return ResponseModel(data=None, code=404, message="Vaccination not found")
-            return ResponseModel(data=None, code=404, message="Vaccination not found")
-        else:
-            return ResponseModel(data=None, code=404, message="Farmer not found")
-    except Exception as e:
-        return ErrorResponseModel(error=str(e), code=500, message="Error deleting vaccination")

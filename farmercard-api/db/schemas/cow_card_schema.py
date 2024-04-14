@@ -4,7 +4,7 @@ from datetime import datetime
 
 class Record(BaseModel):
     date: str 
-    value: float
+    value: str
 
 class IdentificationInfo(BaseModel):
     """
@@ -78,10 +78,10 @@ class MilkHealthReport(BaseModel):
 
 
 class MilkProduction(BaseModel):
-    milking_date: Optional[str]
-    milk_yield: Optional[float]
-    variance: Optional[float]
-    milk_health: Optional[MilkHealthReport]
+    milking_date: str
+    milk_yield: float
+    # variance: Optional[float]
+    # milk_health: Optional[MilkHealthReport]
 
 
 class FeedingAndNutrition(BaseModel):

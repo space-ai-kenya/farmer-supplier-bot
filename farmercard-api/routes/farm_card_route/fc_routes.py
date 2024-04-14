@@ -37,3 +37,12 @@ def create_farmer_card( f_uuid: str, p_number: str, farming_type: str,db: Collec
 def list_farmers(db: Collection = Depends(get_farmer_collection)): 
     data = retrieve_all_farmers(db)
     return data
+
+@farm_card_router.get("/schema", response_description="List all farmers")
+def list_farmers(farmer_schema: FarmerSchema,db: Collection = Depends(get_farmer_collection)): 
+    data = farmer_schema.model_dumps()
+    # save in a file 
+    import json 
+    with open("schema.json", "w") as f:
+        json.dump(data, f, indent=4)
+    return data

@@ -85,7 +85,7 @@ class FarmerCard(BaseModel):
     typeOfFarming: Optional[str]
     farmSize: Optional[int]
     livestockDetails: Optional[LivestockDetails]
-    crop_card: Optional[List[CropCard]]
+    # crop_card: Optional[List[CropCard]]
     # landAndSoilInformation: Optional[LandAndSoilInformation]
     # farmingPractices: Optional[FarmingPractices]
     # financialInformation: Optional[FinancialInformation]
@@ -99,7 +99,7 @@ class FarmerCard(BaseModel):
 class FarmerSchema(BaseModel):
     f_uuid: Optional[str]
     PhoneNumber: Optional[str]
-    farmer_Card: FarmerCard
+    farmer_Card: Optional[FarmerCard]
 
 
     # @validator('f_uuid')
