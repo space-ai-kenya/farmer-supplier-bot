@@ -4,7 +4,7 @@ import logging
 from fastapi.encoders import jsonable_encoder
 from fastapi import HTTPException
 from db.schemas.farm_card_schema import (
-    FarmerSchema,  
+    FarmerSchema 
 )
 
 from db.schemas.response_schema import (
@@ -18,16 +18,44 @@ from fastapi.encoders import jsonable_encoder
 import json
 # ---------------- farmer
 
-def create_farmer(db,farmer: FarmerSchema):
+def create_farmer(db, f_uuid: str, phone_number: str, farming_type: str):
+    """
+    Types of Farming/Farmer:
+    ["Dairy Farmer", "Subsistence Farming", "Commercial Farming"]
+    """
     try:
-        # Define the farmer data with empty sections
-        f_data = farmer.dict()
-        f_data.pop("farmer_Card")
-        print(f_data)
 
-        # result = db.insert_one(f_data)
-        # return ResponseModel(data=str(result.inserted_id), code=201, message="Farmer created successfully")
-        return ResponseModel(data=str(".."), code=201, message="Farmer created successfully")
+        # check first if farmer exisits
+        farmer = db.find_one({"f_uuid": f_uuid,"PhoneNumber":phone_number})
+        if farmer:
+            return ErrorResponseModel(error="Farmer already in database", code=403, message="Farmer already exists")
+        else:
+            farming_types = ["Dairy Farmer", "Subsistence Farming", "Commercial Farming"]
+            # Define the farmer data with empty sections
+            f_data = {
+                "f_uuid": f_uuid,
+                "PhoneNumber": phone_number,
+                "farmer_Card": {
+                    "typeOfFarming": farming_type,
+                    "farmSize": "",
+                    "livestockDetails": {
+                        "cow_card": [],
+                        "animal_inventory": []
+                    },
+                    "crop_card": []
+                }
+            }
+
+            if farming_type == "Dairy Farmer":
+                # Add dairy-specific fields
+                f_data["farmer_Card"].pop("crop_card")
+            else:
+                if farming_type not in farming_types:
+                    return ErrorResponseModel(error="Unknown farming type", code=400, message="Invalid farming type")
+            print(f_data)
+            # Insert the farmer data into the database
+            result = db.insert_one(f_data)
+            return ResponseModel(data=str(result.inserted_id), code=201, message="Farmer created successfully")
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating farmer")
 

@@ -28,10 +28,10 @@ def read_root():
     return {"message": "Spaceai.io Says Hello World"}
 
 
-@farm_card_router.post("/create_farmcard", response_description="Add new farmer")
-def create_farmer_card(farmer: FarmerSchema,db: Collection = Depends(get_farmer_collection)):
-    new_farmer = create_farmer(db, farmer)
-    return new_farmer
+@farm_card_router.post("/create_farmcard/{f_uuid}/{p_number}/{farming_type}", response_description="Add new farmer")
+def create_farmer_card( f_uuid: str, p_number: str, farming_type: str,db: Collection = Depends(get_farmer_collection)):
+    response = create_farmer(db, f_uuid, p_number, farming_type)
+    return response
 
 @farm_card_router.get("/all_farmers", response_description="List all farmers")
 def list_farmers(db: Collection = Depends(get_farmer_collection)): 

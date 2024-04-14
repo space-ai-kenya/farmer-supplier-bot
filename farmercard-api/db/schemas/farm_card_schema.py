@@ -37,8 +37,8 @@ class Inventory(BaseModel):
     feed_inventory: Optional[List[FeedInventory]]
 
 class LivestockDetails(BaseModel):
-    animal_inventory: Optional[List[Inventory]]
     cow_card: Optional[List[CowCard]]
+    animal_inventory: Optional[List[Inventory]]
     
 
 class LandAndSoilInformation(BaseModel):
@@ -84,8 +84,8 @@ class NextStepsAndRecommendations(BaseModel):
 class FarmerCard(BaseModel):
     typeOfFarming: Optional[str]
     farmSize: Optional[int]
-    crop_card: Optional[List[CropCard]]
     livestockDetails: Optional[LivestockDetails]
+    crop_card: Optional[List[CropCard]]
     # landAndSoilInformation: Optional[LandAndSoilInformation]
     # farmingPractices: Optional[FarmingPractices]
     # financialInformation: Optional[FinancialInformation]

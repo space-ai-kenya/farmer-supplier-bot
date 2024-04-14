@@ -4,7 +4,6 @@ from typing import Any
 from bson.objectid import ObjectId
 
 
-
 class ResponseModel(BaseModel):
     data: Any
     code: int

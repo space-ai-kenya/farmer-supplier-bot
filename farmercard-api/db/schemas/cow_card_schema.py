@@ -4,7 +4,7 @@ from datetime import datetime
 
 class Record(BaseModel):
     date: str 
-    value: str
+    value: float
 
 class IdentificationInfo(BaseModel):
     """
@@ -17,7 +17,7 @@ class IdentificationInfo(BaseModel):
     age: Optional[int]
     breed: Optional[str]
     bcs: Optional[str]
-    average_weight: Optional[str]
+    weight_record: Optional[List[Record]]
     colour: Optional[str]
     origin: Optional[str]
 
@@ -76,11 +76,6 @@ class MilkHealthReport(BaseModel):
     fat_percentage: Optional[float]
     protein_percentage: Optional[float]
 
-    # @validator('fat_percentage', 'protein_percentage')
-    # def check_percentage(cls, v):
-    #     if v < 0 or v > 100:
-    #         raise ValueError('Percentage must be between 0 and 100')
-    #     return v
 
 class MilkProduction(BaseModel):
     milking_date: Optional[str]
@@ -133,7 +128,7 @@ class CowCard(BaseModel):
     calving_information: Optional[List[CalvingInformation]]
     feeding_and_nutrition: Optional[List[FeedingAndNutrition]]
     treatment_records: Optional[List[TreatmentRecord]]
-    laboratory_results: Optional[LaboratoryResults]
-    body_measurements: Optional[BodyMeasurements]
-    behavioral_observations: Optional[BehavioralObservations]
-    environmental_data: Optional[EnvironmentalData]
+    # laboratory_results: Optional[LaboratoryResults]
+    # body_measurements: Optional[BodyMeasurements]
+    # behavioral_observations: Optional[BehavioralObservations]
+    # environmental_data: Optional[EnvironmentalData]
