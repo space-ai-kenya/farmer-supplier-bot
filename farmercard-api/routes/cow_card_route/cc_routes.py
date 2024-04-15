@@ -1,4 +1,5 @@
 from typing import List
+from typing import Union
 from fastapi import APIRouter,Depends,HTTPException
 from pymongo.collection import Collection
 from fastapi.encoders import jsonable_encoder
@@ -26,7 +27,8 @@ from db.schemas.cow_card_schema import (
 )
 
 from db.schemas.response_schema import (
-    ResponseModel
+    ResponseModel,
+    ErrorResponseModel
 )
 
 
@@ -46,7 +48,7 @@ def createCowinfo(PhoneNumber: str,cow_info: IdentificationInfo,db: Collection =
     return response
 
 
-@cow_card_router.post("/{PhoneNumber}/{cow_id}/milk-production", response_model=ResponseModel)
+@cow_card_router.post("/{PhoneNumber}/{cow_id}/milk-production", response_model=Union[ResponseModel,ErrorResponseModel])
 def createMilkProductionData(PhoneNumber: str,cow_id: str,milk_production_data: MilkProduction,db: Collection = Depends(get_farmer_collection)):
     response = create_milk_production_data(db,PhoneNumber,cow_id,jsonable_encoder(milk_production_data))
     return response
@@ -54,29 +56,29 @@ def createMilkProductionData(PhoneNumber: str,cow_id: str,milk_production_data: 
 
 
 # ------------------ Health Records ----------------
-@cow_card_router.post("/{PhoneNumber}/{cow_id}/vaccinations", response_model=ResponseModel)
+@cow_card_router.post("/{PhoneNumber}/{cow_id}/vaccinations", response_model=Union[ResponseModel,ErrorResponseModel])
 def create_VaccinationHistory(PhoneNumber: str,cow_id: str,vaccination:VaccineRecord,db: Collection = Depends(get_farmer_collection)):
     response = create_vaccination_history(db, PhoneNumber, cow_id, jsonable_encoder(vaccination))
     return response
 
 
 
-@cow_card_router.post("/{PhoneNumber}/{cow_id}/heat-cycles", response_model=ResponseModel)
+@cow_card_router.post("/{PhoneNumber}/{cow_id}/heat-cycles", response_model=Union[ResponseModel,ErrorResponseModel])
 def createheat_cycles(PhoneNumber: str,cow_id: str,heat_cycles: List[HeatCycle],db: Collection = Depends(get_farmer_collection)):
     response = create_heat_cycles(db, PhoneNumber, cow_id, heat_cycles)
     return response
 
-@cow_card_router.post("/{PhoneNumber}/{cow_id}/breeding-events", response_model=ResponseModel)
+@cow_card_router.post("/{PhoneNumber}/{cow_id}/breeding-events", response_model=Union[ResponseModel,ErrorResponseModel])
 def createbreeding_events(PhoneNumber: str,cow_id: str,breeding_events: List[BreedingEvent],db: Collection = Depends(get_farmer_collection)):
     response = create_breeding_events(db, PhoneNumber, cow_id, breeding_events)
     return response
 
-@cow_card_router.put("/{PhoneNumber}/{cow_id}/{pregnancy_status}/pregnancy-status", response_model=ResponseModel)
+@cow_card_router.put("/{PhoneNumber}/{cow_id}/{pregnancy_status}/pregnancy-status", response_model=Union[ResponseModel,ErrorResponseModel])
 def updatepregnancy_status(PhoneNumber: str,cow_id: str,pregnancy_status: str,db: Collection = Depends(get_farmer_collection)):
     response = create_pregnancy_status(db, PhoneNumber, cow_id, pregnancy_status)
     return response
 
-@cow_card_router.post("/{PhoneNumber}/{cow_id}/calving-history", response_model=ResponseModel)
+@cow_card_router.post("/{PhoneNumber}/{cow_id}/calving-history", response_model=Union[ResponseModel,ErrorResponseModel])
 def createcalving_history(PhoneNumber: str,cow_id: str,calving_history: List[CalvingEvent],db: Collection = Depends(get_farmer_collection)):
     response = create_calving_history(db, PhoneNumber, cow_id, calving_history)
     return response
