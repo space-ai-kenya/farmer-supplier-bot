@@ -12,18 +12,11 @@ app = FastAPI(title="Farmer Management API",
     description="API for managing farmer data",
     version="1.0.0",
     servers=[
-        {"url": "https://c744-41-90-71-64.ngrok-free.app"},
+        {"url": " https://735a-41-90-71-64.ngrok-free.app"},
     ],
 )
 
-
-# incluse routes
-app.include_router(fc_routes.farm_card_router)
-app.include_router(cc_routes.cow_card_router)
-
-
-
-logging.basicConfig(level=logging.INFO)
+# Phone No Regex ^((\+?254)|0)?(7\d{8})$
 
 # Event handler to check MongoDB connection on startup
 @app.on_event("startup")
@@ -38,6 +31,11 @@ async def startup_event():
         # Optionally, you can raise an exception to halt the startup process if the connection fails
         raise e
 
+logging.basicConfig(level=logging.INFO)
+
+# incluse routes
+app.include_router(fc_routes.farm_card_router)
+app.include_router(cc_routes.cow_card_router)
 
 
 if __name__ == "__main__":

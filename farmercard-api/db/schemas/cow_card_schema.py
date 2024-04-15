@@ -16,10 +16,10 @@ class IdentificationInfo(BaseModel):
     birth_date: Optional[str]
     age: Optional[int]
     breed: Optional[str]
-    bcs: Optional[str]
-    weight_record: Optional[List[Record]]
-    colour: Optional[str]
-    origin: Optional[str]
+    # bcs: Optional[str]
+    # weight_record: Optional[List[Record]]
+    # colour: Optional[str]
+    # origin: Optional[str]
 
 
 class VaccineRecord(BaseModel):

@@ -27,9 +27,18 @@ farm_card_router = APIRouter(
 def read_root():
     return {"message": "Spaceai.io Says Hello World"}
 
+from pydantic import BaseModel
 
-@farm_card_router.post("/create_farmcard/{f_uuid}/{p_number}/{farming_type}", response_description="Add new farmer")
-def create_farmer_card( f_uuid: str, p_number: str, farming_type: str,db: Collection = Depends(get_farmer_collection)):
+class CreateFarmCard(BaseModel):
+    f_uuid: str
+    p_number: str
+    farming_type: str
+
+@farm_card_router.post("/create_farmcard", response_description="Add new farmer")
+def create_farmer_card(farmer: CreateFarmCard,db: Collection = Depends(get_farmer_collection)):
+    f_uuid = farmer.f_uuid
+    p_number = farmer.p_number
+    farming_type = farmer.farming_type
     response = create_farmer(db, f_uuid, p_number, farming_type)
     return response
 
@@ -41,8 +50,4 @@ def list_farmers(db: Collection = Depends(get_farmer_collection)):
 @farm_card_router.get("/schema", response_description="List all farmers")
 def list_farmers(farmer_schema: FarmerSchema,db: Collection = Depends(get_farmer_collection)): 
     data = farmer_schema.model_dumps()
-    # save in a file 
-    import json 
-    with open("schema.json", "w") as f:
-        json.dump(data, f, indent=4)
     return data
