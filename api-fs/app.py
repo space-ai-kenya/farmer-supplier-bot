@@ -37,8 +37,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 # Twilio client initialization
-account_sid = 'AC442ba47f80acbd0c4d111591dabd449b'
-auth_token = 'd5c605a8404e1fd91ded1e071b711175'
+account_sid = os.getenv('ACCOUNT_SID')
+auth_token = os.getenv('AUTH_TOKEN')
 client = Client(account_sid, auth_token)
 
 
