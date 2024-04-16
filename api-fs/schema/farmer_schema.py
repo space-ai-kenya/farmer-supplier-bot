@@ -40,5 +40,9 @@ class CountylistOut(Schema):
     name=String()
 
     
-
-   
+class MessageRequest(Schema):
+    #from_number = String(required=True, default='whatsapp:+14155238886', metadata={'example': 'whatsapp:+14155238886'})
+    #to_number = String(required=True,default='whatsapp:+254791747812', metadata={'example': 'whatsapp:+254791747812'})
+    body = String(required=True, metadata={'example': 'Your appointment is coming up on July 21 at 3PM'})
+    confirm = String(required=True, default='Confirm')
+    cancel = String(required=True, default='Cancel')

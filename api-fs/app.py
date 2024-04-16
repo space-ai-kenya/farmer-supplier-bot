@@ -17,9 +17,11 @@ from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 
 import uuid
 
+from twilio.rest import Client
+
 # Local imports ------------------------------------------------
 from database.models import Farmer, Order
-from schema.farmer_schema import FarmerInSchema, FarmerOutSchema, OrderIn, CountylistOut, OrderformattingIn, OrderformattingOut
+from schema.farmer_schema import FarmerInSchema, FarmerOutSchema, OrderIn, CountylistOut, OrderformattingIn, OrderformattingOut, MessageRequest
 from database.db import db
 from routes.routes import get_order_details
 from routes.invoices import generate_invoice
@@ -32,6 +34,12 @@ load_dotenv()
 #set base directory of app.py
 basedir = os.path.abspath(os.path.dirname(__file__))
 
+
+
+# Twilio client initialization
+account_sid = 'AC442ba47f80acbd0c4d111591dabd449b'
+auth_token = 'd5c605a8404e1fd91ded1e071b711175'
+client = Client(account_sid, auth_token)
 
 
 assistant_api_key = os.getenv('ASSISTANT_API_KEY')
@@ -57,6 +65,30 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://myuser:mypassword@host.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 CORS(app, resources={r"*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE"]}})
+
+
+
+
+# Endpoint to send a message
+@app.post('/whatsapp_send_message')
+@app.input(MessageRequest)
+def whatsapp_send_message(json_data):
+
+    message_body = json_data['body']
+    message_body = message_body.format(json_data['confirm'], json_data['cancel'])
+
+    message = client.messages.create(
+    from_='whatsapp:+14155238886',
+    body=message_body,
+    to='whatsapp:+254799008462'
+    )
+
+    return {'message_id': message.sid}
+
+
+
+
+
 
 
 ##Endpoint for creating and inserting a farmer into db from a FORM using POST
