@@ -7,14 +7,14 @@ from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER, TA_LEFT
 import google.generativeai as genai
 import json
-
+import os
 ## --------- Local imports ---------------
 #from routes import parse_order_description
 from common.getfilepath import file_path
 
 ## This function helps to filter the orders using GEMINI
 
-GOOGLE_API_KEY ='AIzaSyByEHWnU4grVOfuRUgdXB0gk93v-yWKfAs'
+GOOGLE_API_KEY =os.getenv('GEMINI_API_KEY')
 genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-pro')
 
