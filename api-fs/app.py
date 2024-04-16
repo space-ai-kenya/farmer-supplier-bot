@@ -36,9 +36,9 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 
-acc_sid = os.getenv('ACC_SID')
+account_sid = os.getenv('ACCOUNT_SID')
 auth_token = os.getenv('AUTH_TOKEN')
-client = Client(acc_sid, auth_token)
+client = Client(account_sid, auth_token)
 
 
 assistant_api_key = os.getenv('ASSISTANT_API_KEY')
