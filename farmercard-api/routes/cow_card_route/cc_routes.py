@@ -1,6 +1,7 @@
 from typing import List
 from typing import Union
 from fastapi import APIRouter,Depends,HTTPException
+from fastapi.responses import JSONResponse
 from pymongo.collection import Collection
 from fastapi.encoders import jsonable_encoder
 from db.database import (
@@ -39,19 +40,73 @@ cow_card_router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+from pydantic import BaseModel
 
-@cow_card_router.post("/{PhoneNumber}/create_cow_info", response_model=ResponseModel)
-def createCowinfo(PhoneNumber: str,cow_info: IdentificationInfo,db: Collection = Depends(get_farmer_collection)):
-    logging.info(cow_info.dict())
-    response = create_cow_info(db,PhoneNumber,jsonable_encoder(cow_info))
-    logging.info(response.dict())
-    return response
+class CreateBase(BaseModel):
+    f_uuid: str
+    p_number: str
+    farm_name_id:str
+
+class CreateCowInfo(CreateBase):
+    cow_info: IdentificationInfo
+
+@cow_card_router.post("/create_cow_info", response_model=Union[ResponseModel, List[ResponseModel], ErrorResponseModel])
+def createCowinfo(cow_identity: Union[CreateCowInfo, List[CreateCowInfo]], db: Collection = Depends(get_farmer_collection)):
+    responses = []
+    # check from union if its a list or normal
+    if isinstance(cow_identity, list):
+        logging.info("---------- List of cow info ---------")
+
+        for cow_info in cow_identity:
+            logging.info(cow_info.cow_info.dict())
+            response = create_cow_info(db, f_uuid=cow_info.f_uuid, farm_name_id=cow_info.farm_name_id, cow_data=jsonable_encoder(cow_info.cow_info))
+            logging.info(response.dict())
+            responses.append(jsonable_encoder(response))
+    else:
+        logging.info(cow_identity.cow_info.dict())
+        response = create_cow_info(db, f_uuid=cow_identity.f_uuid, farm_name_id=cow_identity.farm_name_id, cow_data=jsonable_encoder(cow_identity.cow_info))
+        logging.info(response.dict())
+        responses.append(jsonable_encoder(response))
+    return JSONResponse(responses[0])
 
 
-@cow_card_router.post("/{PhoneNumber}/{cow_id}/milk-production", response_model=Union[ResponseModel,ErrorResponseModel])
-def createMilkProductionData(PhoneNumber: str,cow_id: str,milk_production_data: MilkProduction,db: Collection = Depends(get_farmer_collection)):
-    response = create_milk_production_data(db,PhoneNumber,cow_id,jsonable_encoder(milk_production_data))
-    return response
+class CreateMilkProduction(CreateBase):
+    cow_id: str
+    milk_production_data: List[MilkProduction]
+
+@cow_card_router.post("/milk-production", response_model=Union[ResponseModel, ErrorResponseModel])
+def createMilkProductionData(milk_prod: Union[CreateMilkProduction, List[CreateMilkProduction]], db: Collection = Depends(get_farmer_collection)):
+    responses = []
+
+    if isinstance(milk_prod, list):
+        logging.info("---------- List of milk production data ---------")
+        for milk_data in milk_prod:
+            logging.info(milk_data.milk_production_data)
+            response = create_milk_production_data(
+                db,
+                f_uuid=milk_data.f_uuid,
+                farm_name_id=milk_data.farm_name_id,
+                cow_id=milk_data.cow_id,
+                milk_production_data=jsonable_encoder(milk_data.milk_production_data)
+            )
+            
+            responses.append(jsonable_encoder(response))
+    else:
+        logging.info(milk_prod.milk_production_data)
+        response = create_milk_production_data(
+            db,
+            f_uuid=milk_prod.f_uuid,
+            farm_name_id=milk_prod.farm_name_id,
+            cow_id=milk_prod.cow_id,
+            milk_production_data=jsonable_encoder(milk_prod.milk_production_data)
+        )
+        logging.info(response.dict())
+        responses.append(jsonable_encoder(response))
+
+    if isinstance(responses[0], ErrorResponseModel):
+        return JSONResponse(content=jsonable_encoder(responses[0]))
+    else:
+        return JSONResponse(content=jsonable_encoder(responses[0]))
 
 
 
@@ -69,7 +124,7 @@ def createheat_cycles(PhoneNumber: str,cow_id: str,heat_cycles: List[HeatCycle],
     return response
 
 @cow_card_router.post("/{PhoneNumber}/{cow_id}/breeding-events", response_model=Union[ResponseModel,ErrorResponseModel])
-def createbreeding_events(PhoneNumber: str,cow_id: str,breeding_events: List[BreedingEvent],db: Collection = Depends(get_farmer_collection)):
+def createbreeding_events(PhoneNumber: str,cow_id: str,breeding_events:Union[List[BreedingEvent],BreedingEvent],db: Collection = Depends(get_farmer_collection)):
     response = create_breeding_events(db, PhoneNumber, cow_id, breeding_events)
     return response
 

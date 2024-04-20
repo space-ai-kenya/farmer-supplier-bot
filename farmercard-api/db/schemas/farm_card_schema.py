@@ -85,7 +85,7 @@ class FarmerCard(BaseModel):
     typeOfFarming: Optional[str]
     farmSize: Optional[int]
     livestockDetails: Optional[LivestockDetails]
-    # crop_card: Optional[List[CropCard]]
+    crop_card: Optional[List[CropCard]]
     # landAndSoilInformation: Optional[LandAndSoilInformation]
     # farmingPractices: Optional[FarmingPractices]
     # financialInformation: Optional[FinancialInformation]

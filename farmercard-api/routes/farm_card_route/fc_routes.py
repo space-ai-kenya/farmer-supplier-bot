@@ -38,13 +38,15 @@ class CreateFarmCard(BaseModel):
     f_uuid: str
     p_number: str
     farming_type: str
+    farm_name_id:str
 
 @farm_card_router.post("/create_farmcard", response_description="Add new farmer", response_model=Union[ResponseModel,ErrorResponseModel])
 def create_farmer_card(farmer: CreateFarmCard,db: Collection = Depends(get_farmer_collection)):
     f_uuid = farmer.f_uuid
     p_number = farmer.p_number
     farming_type = farmer.farming_type
-    response = create_farmer(db, f_uuid, p_number, farming_type)
+    farm_name_id = farmer.farm_name_id
+    response = create_farmer(db=db, f_uuid=f_uuid,farm_name_id=farm_name_id, phone_number=p_number,farming_type=farming_type)
     return response
 
 @farm_card_router.get("/all_farmers", response_description="List all farmers", response_model=Union[ResponseModel,ErrorResponseModel])
