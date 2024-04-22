@@ -9,21 +9,14 @@ from db.database import (
 )
 from db.db_queries.CowCard_queries import (
     create_cow_info,
-    create_vaccination_history,
-    create_heat_cycles,
-    create_breeding_events,
-    create_calving_history,
     create_milk_production_data,
-    create_pregnancy_status,
+
+    # ------------------ health
+    create_vaccination_history,
 )
 from db.schemas.cow_card_schema import (
     IdentificationInfo,
     MilkProduction,
-
-    # ReproductiveHealth-------------------------------
-    HeatCycle,
-    BreedingEvent,
-    CalvingEvent,
     VaccineRecord
 )
 
@@ -55,7 +48,6 @@ def createCowinfo(cow_identity: Union[CreateCowInfo, List[CreateCowInfo]], db: C
     # check from union if its a list or normal
     if isinstance(cow_identity, list):
         logging.info("---------- List of cow info ---------")
-
         for cow_info in cow_identity:
             logging.info(cow_info.cow_info.dict())
             response = create_cow_info(db,PhoneNumber=cow_info.p_number, farm_name_id=cow_info.farm_name_id, cow_data=jsonable_encoder(cow_info.cow_info))
@@ -69,12 +61,12 @@ def createCowinfo(cow_identity: Union[CreateCowInfo, List[CreateCowInfo]], db: C
     return JSONResponse(responses[0])
 
 
-class CreateMilkProduction(CreateBase):
+class CreateVaccinationRecord(CreateBase):
     cow_id: str
     milk_production_data: List[MilkProduction]
 
 @cow_card_router.post("/milk-production", response_model=Union[ResponseModel, ErrorResponseModel])
-def createMilkProductionData(milk_prod: Union[CreateMilkProduction, List[CreateMilkProduction]], db: Collection = Depends(get_farmer_collection)):
+def createMilkProductionData(milk_prod: Union[CreateVaccinationRecord, List[CreateVaccinationRecord]], db: Collection = Depends(get_farmer_collection)):
     responses = []
 
     if isinstance(milk_prod, list):
@@ -109,3 +101,39 @@ def createMilkProductionData(milk_prod: Union[CreateMilkProduction, List[CreateM
 
 
 # ------------------ Health Records ----------------
+class CreateMilkProduction(CreateBase):
+    cow_id: str
+    v_records: List[VaccineRecord]
+
+@cow_card_router.post("/vaccine-record", response_model=Union[ResponseModel, ErrorResponseModel])
+def createVaccinationRec(vacc_record: Union[CreateMilkProduction, List[CreateMilkProduction]], db: Collection = Depends(get_farmer_collection)):
+    responses = []
+
+    if isinstance(vacc_record, list):
+        logging.info("---------- List of milk production data ---------")
+        for v_rec in vacc_record:
+            logging.info(v_rec.v_records)
+            response = create_vaccination_history(
+                db,
+                PhoneNumber=v_rec.p_number,
+                farm_name_id=v_rec.farm_name_id,
+                cow_id=v_rec.cow_id,
+                vaccination_record=jsonable_encoder(v_rec.v_records)
+            )
+            responses.append(jsonable_encoder(response))
+    else:
+        logging.info(vacc_record.v_records)
+        response = create_vaccination_history(
+            db,
+            PhoneNumber=vacc_record.p_number,
+            farm_name_id=vacc_record.farm_name_id,
+            cow_id=vacc_record.cow_id,
+            vaccination_record=jsonable_encoder(vacc_record.v_records)
+        )
+        logging.info(response.dict())
+        responses.append(jsonable_encoder(response))
+
+    if isinstance(responses[0], ErrorResponseModel):
+        return JSONResponse(content=jsonable_encoder(responses[0]))
+    else:
+        return JSONResponse(content=jsonable_encoder(responses[0]))

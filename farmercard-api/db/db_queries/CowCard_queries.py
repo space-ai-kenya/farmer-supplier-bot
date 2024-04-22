@@ -88,39 +88,46 @@ def create_milk_production_data(db, PhoneNumber: str, farm_name_id: str, cow_id:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating milk production data")
 
 # ---------------------- Reproductive Health Queries ---------------------------------------------------
-def create_vaccination_history(db, PhoneNumber: str, cow_id: str, vaccination_record):
+def create_vaccination_history(db, PhoneNumber: str, cow_id: str,farm_name_id: str, vaccination_record:list):
     """
     Create new vaccination history for a cow.
     """
     try:
+        logging.info(vaccination_record)
         # Check if the farmer exists
         farmer = db.find_one({"PhoneNumber": PhoneNumber})
         if not farmer:
             return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
 
-        # Check if the cow card section exists, if not, create it
-        if "cow_card" not in farmer["farmer_Card"]["livestockDetails"]:
-            db.update_one({"PhoneNumber": PhoneNumber}, {"$set": {"farmer_Card.livestockDetails.cow_card": []}})
+        # Find the farm card for the given farm_name_id
+        farm_card = next((card for card in farmer["farm_cards"] if card["farm_name_id"] == farm_name_id), None)
+        if not farm_card:
+            return ErrorResponseModel(error="Farm not found", code=404, message="Farm does not exist for the given farmer")
+
+        # Check if the cow_card section exists, if not, create it
+        if "cow_card" not in farm_card["livestockDetails"]:
+            db.update_one({"PhoneNumber": PhoneNumber, "farm_cards.farm_name_id": farm_name_id},
+                          {"$set": {"farm_cards.$.livestockDetails.cow_card": []}})
 
         # Find the cow card with the given cow_id
-        cow_card = next((card for card in farmer["farmer_Card"]["livestockDetails"]["cow_card"] if card["identification_info"]["unique_id"] == cow_id), None)
-        if not cow_card:
-            return ErrorResponseModel(error="Cow card not found", code=404, message="Cow card does not exist")
+        cow_card_info = next((card for card in farm_card["livestockDetails"]["cow_card"] if card["identification_info"]["unique_id"] == cow_id), None)
+        if not cow_card_info:
+            return ErrorResponseModel(error="Cow card not found", code=404, message=f"Cow of id: {cow_id} does not exist")
 
-        # Check if the health_records section exists, if not, create it
-        if "health_records" not in cow_card:
-            cow_card["health_records"] = []
+        # Check if the milk_production_data section exists, if not, create it
+        if "vaccination_record" not in cow_card_info:
+            db.update_one(
+                {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+                {"$set": {"farm_cards.$[].livestockDetails.cow_card.$[].vaccination_record": []}}
+            )
 
-        # Check if the vaccination_history section exists, if not, create it
-        if "vaccination_history" not in cow_card["health_records"][0]:
-            cow_card["health_records"][0]["vaccination_history"] = []
-
-        # Add the new vaccination history to the cow card
-        cow_card["health_records"][0]["vaccination_history"].extend(vaccination_record)
-        db.update_one({"PhoneNumber": PhoneNumber, "farmer_Card.livestockDetails.cow_card.identification_info.unique_id": cow_id},
-                     {"$set": {"farmer_Card.livestockDetails.cow_card.$.health_records.0.vaccination_history": cow_card["health_records"][0]["vaccination_history"]}})
-        return ResponseModel(data=vaccination_record, code=201, message="Vaccination history created successfully")
-
+        # Update the milk_production_data array for the specific cow card
+        db.update_one(
+            {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].vaccination_record": {"$each": vaccination_record}}},
+            array_filters=[{"elem.identification_info.unique_id": cow_id}]
+        )
+        return ResponseModel(data=vaccination_record, code=201, message="Vaccination Record created successfully ✅")
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating vaccination history")
 
