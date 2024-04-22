@@ -1,19 +1,13 @@
 from fastapi import APIRouter,Depends
 from fastapi.encoders import jsonable_encoder
 from typing import List
-from typing import Union
 from pymongo.collection import Collection
 from db.database import get_farmer_collection
 from db.schemas.response_schema import (
     ResponseModel,
-    ErrorResponseModel
 )
 from db.schemas.farm_card_schema import (
     FarmerSchema,
-)
-
-from db.schemas.cow_card_schema import (
-    CowCard
 )
 
 from db.db_queries.FarmerSchema_queries import (
@@ -42,7 +36,7 @@ class CreateFarmCard(BaseModel):
     farming_type: str
     farm_name_id:str
 
-@farm_card_router.post("/create_farmcard", response_description="Add new farmer", response_model=Union[ResponseModel,ErrorResponseModel])
+@farm_card_router.post("/create_farmcard", response_description="Add new farmer", response_model=ResponseModel)
 def create_farmer_card(farmer: CreateFarmCard,db: Collection = Depends(get_farmer_collection)):
     f_uuid = farmer.f_uuid
     p_number = farmer.p_number
@@ -56,7 +50,7 @@ class AddFarmCard(BaseModel):
     farm_name_id:str
 
 
-@farm_card_router.post("/add_farmcard", response_description="Add new farmer", response_model=Union[ResponseModel,ErrorResponseModel])
+@farm_card_router.post("/add_farmcard", response_description="Add new farmer", response_model=ResponseModel)
 def addFCard(farmer: AddFarmCard,db: Collection = Depends(get_farmer_collection)):
     p_number = farmer.p_number
     farm_name_id = farmer.farm_name_id
@@ -65,11 +59,11 @@ def addFCard(farmer: AddFarmCard,db: Collection = Depends(get_farmer_collection)
     )
     return response
 
-@farm_card_router.post("/farmer_farm_names", response_description="Add new farmer", response_model=Union[ResponseModel,ErrorResponseModel])
+@farm_card_router.post("/farmer_farm_names", response_description="Add new farmer", response_model=ResponseModel)
 def get_farms(farmer: AddFarmCard,db: Collection = Depends(get_farmer_collection)):
     pass
 
-@farm_card_router.get("/all_farmers", response_description="List all farmers", response_model=Union[ResponseModel,ErrorResponseModel])
+@farm_card_router.get("/all_farmers", response_description="List all farmers", response_model=ResponseModel)
 def list_farmers(db: Collection = Depends(get_farmer_collection)): 
     data = retrieve_all_farmers(db)
     return data
@@ -77,13 +71,13 @@ def list_farmers(db: Collection = Depends(get_farmer_collection)):
 class FarmNameIds(BaseModel):
     p_number: str
 
-@farm_card_router.post("/farm_name_ids", response_description="List farm name IDs for a given phone number", response_model=Union[ResponseModel, ErrorResponseModel])
+@farm_card_router.post("/farm_name_ids", response_description="List farm name IDs for a given phone number", response_model=ResponseModel)
 async def get_farm_name_ids_endpoint(phone_number: FarmNameIds, db: Collection = Depends(get_farmer_collection)):
     response = get_farm_name_ids(db, phone_number.p_number)
     return response
 
 
-@farm_card_router.get("/schema", response_description="List all farmers", response_model=Union[ResponseModel,ErrorResponseModel])
+@farm_card_router.get("/schema", response_description="List all farmers", response_model=ResponseModel)
 def farm_card_Schema(farmer_schema: FarmerSchema,db: Collection = Depends(get_farmer_collection)): 
     data = farmer_schema.model_dumps()
     return data

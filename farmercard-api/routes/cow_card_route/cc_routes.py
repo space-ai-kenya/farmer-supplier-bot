@@ -42,8 +42,8 @@ class CreateBase(BaseModel):
 class CreateCowInfo(CreateBase):
     cow_info: IdentificationInfo
 
-@cow_card_router.post("/create_cow_info", response_model=Union[ResponseModel, List[ResponseModel], ErrorResponseModel])
-def createCowinfo(cow_identity: Union[CreateCowInfo, List[CreateCowInfo]], db: Collection = Depends(get_farmer_collection)):
+@cow_card_router.post("/create_cow_info", response_model=ResponseModel)
+def createCowinfo(cow_identity: List[CreateCowInfo], db: Collection = Depends(get_farmer_collection)):
     responses = []
     # check from union if its a list or normal
     if isinstance(cow_identity, list):
@@ -65,8 +65,8 @@ class CreateVaccinationRecord(CreateBase):
     cow_id: str
     milk_production_data: List[MilkProduction]
 
-@cow_card_router.post("/milk-production", response_model=Union[ResponseModel, ErrorResponseModel])
-def createMilkProductionData(milk_prod: Union[CreateVaccinationRecord, List[CreateVaccinationRecord]], db: Collection = Depends(get_farmer_collection)):
+@cow_card_router.post("/milk-production", response_model=ResponseModel)
+def createMilkProductionData(milk_prod: List[CreateVaccinationRecord], db: Collection = Depends(get_farmer_collection)):
     responses = []
 
     if isinstance(milk_prod, list):
@@ -105,8 +105,8 @@ class CreateMilkProduction(CreateBase):
     cow_id: str
     v_records: List[VaccineRecord]
 
-@cow_card_router.post("/vaccine-record", response_model=Union[ResponseModel, ErrorResponseModel])
-def createVaccinationRec(vacc_record: Union[CreateMilkProduction, List[CreateMilkProduction]], db: Collection = Depends(get_farmer_collection)):
+@cow_card_router.post("/vaccine-record", response_model=ResponseModel)
+def createVaccinationRec(vacc_record: List[CreateMilkProduction], db: Collection = Depends(get_farmer_collection)):
     responses = []
 
     if isinstance(vacc_record, list):
