@@ -18,6 +18,7 @@ from db.schemas.cow_card_schema import (
 
 from db.db_queries.FarmerSchema_queries import (
     create_farmer,
+    add_farm_card,
     retrieve_all_farmers,
 )
 
@@ -47,6 +48,20 @@ def create_farmer_card(farmer: CreateFarmCard,db: Collection = Depends(get_farme
     farming_type = farmer.farming_type
     farm_name_id = farmer.farm_name_id
     response = create_farmer(db=db, f_uuid=f_uuid,farm_name_id=farm_name_id, phone_number=p_number,farming_type=farming_type)
+    return response
+
+class AddFarmCard(BaseModel):
+    p_number: str
+    farm_name_id:str
+
+
+@farm_card_router.post("/add_farmcard", response_description="Add new farmer", response_model=Union[ResponseModel,ErrorResponseModel])
+def addFCard(farmer: AddFarmCard,db: Collection = Depends(get_farmer_collection)):
+    p_number = farmer.p_number
+    farm_name_id = farmer.farm_name_id
+    response = add_farm_card(\
+        db=db,farm_name_id=farm_name_id, phone_number=p_number
+    )
     return response
 
 @farm_card_router.get("/all_farmers", response_description="List all farmers", response_model=Union[ResponseModel,ErrorResponseModel])

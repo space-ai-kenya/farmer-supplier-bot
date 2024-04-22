@@ -8,14 +8,14 @@ from db.schemas.response_schema import (
     ErrorResponseModel
 )
 # -------------------- Cow Card
-def create_cow_info(db, f_uuid: str, farm_name_id: str, cow_data: dict):
+def create_cow_info(db, PhoneNumber: str, farm_name_id: str, cow_data: dict):
     """
     Create a new cow identification information for the farmer.
     """
-    logging.info(f_uuid)
+    logging.info(PhoneNumber)
     try:
         # Check if the farmer exists
-        farmer = db.find_one({"f_uuid": f_uuid})
+        farmer = db.find_one({"PhoneNumber": PhoneNumber})
         if not farmer:
             return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
 
@@ -26,7 +26,7 @@ def create_cow_info(db, f_uuid: str, farm_name_id: str, cow_data: dict):
 
         # Check if the cow_card section exists, if not, create it
         if "cow_card" not in farm_card["livestockDetails"]:
-            db.update_one({"f_uuid": f_uuid, "farm_cards.$.farm_name_id": f"farm_{farm_name_id}"},
+            db.update_one({"PhoneNumber": PhoneNumber, "farm_cards.$.farm_name_id": f"farm_{farm_name_id}"},
                            {"$set": {"farm_cards.$.livestockDetails.cow_card": []}})
 
         # Check if a cow with the same unique ID already exists
@@ -38,20 +38,20 @@ def create_cow_info(db, f_uuid: str, farm_name_id: str, cow_data: dict):
             "identification_info": cow_data
         }
         # Find where farm id and uuid match append cow info
-        db.update_one({"f_uuid": f_uuid, "farm_cards.farm_name_id": f"farm_{farm_name_id}"},
+        db.update_one({"PhoneNumber": PhoneNumber, "farm_cards.farm_name_id": f"farm_{farm_name_id}"},
                       {"$push": {"farm_cards.$.livestockDetails.cow_card": cow_info}})
         return ResponseModel(data=cow_info, code=201, message="Cow identification information created successfully")
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating cow identification information")
     
-def create_milk_production_data(db, f_uuid: str, farm_name_id: str, cow_id: str, milk_production_data: list):
+def create_milk_production_data(db, PhoneNumber: str, farm_name_id: str, cow_id: str, milk_production_data: list):
     """
     Create a new milk production data for a cow.
     """
     try:
         logging.info(milk_production_data)
         # Check if the farmer exists
-        farmer = db.find_one({"f_uuid": f_uuid})
+        farmer = db.find_one({"PhoneNumber": PhoneNumber})
         if not farmer:
             return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
 
@@ -62,7 +62,7 @@ def create_milk_production_data(db, f_uuid: str, farm_name_id: str, cow_id: str,
 
         # Check if the cow_card section exists, if not, create it
         if "cow_card" not in farm_card["livestockDetails"]:
-            db.update_one({"f_uuid": f_uuid, "farm_cards.farm_name_id": farm_name_id},
+            db.update_one({"PhoneNumber": PhoneNumber, "farm_cards.farm_name_id": farm_name_id},
                           {"$set": {"farm_cards.$.livestockDetails.cow_card": []}})
 
         # Find the cow card with the given cow_id
@@ -72,13 +72,17 @@ def create_milk_production_data(db, f_uuid: str, farm_name_id: str, cow_id: str,
 
         # Check if the milk_production_data section exists, if not, create it
         if "milk_production_data" not in cow_card_info:
-            db.update_one({"f_uuid": f_uuid, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
-                          {"$set": {"farm_cards.$[].livestockDetails.cow_card.$[].milk_production_data": []}})
+            db.update_one(
+                {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+                {"$set": {"farm_cards.$[].livestockDetails.cow_card.$[].milk_production_data": []}}
+            )
 
         # Update the milk_production_data array for the specific cow card
-        db.update_one({"f_uuid": f_uuid, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
-                      {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].milk_production_data": {"$each": milk_production_data}}},
-                      array_filters=[{"elem.identification_info.unique_id": cow_id}])
+        db.update_one(
+            {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].milk_production_data": {"$each": milk_production_data}}},
+            array_filters=[{"elem.identification_info.unique_id": cow_id}]
+        )
         return ResponseModel(data=milk_production_data, code=201, message="Milk production data created successfully")
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating milk production data")

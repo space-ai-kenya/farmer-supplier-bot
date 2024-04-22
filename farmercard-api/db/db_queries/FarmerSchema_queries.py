@@ -61,26 +61,27 @@ def create_farmer(db, f_uuid: str,farm_name_id:str, phone_number: str, farming_t
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating farmer")
 
-def add_farm_card(db, f_uuid: str, farm_card: dict):
-    """
-    Add a new farm card to an existing farmer.
-    """
+def add_farm_card(db,phone_number: str, farm_name_id: str):
     try:
-        # Find the farmer
-        farmer = db.find_one({"f_uuid": f_uuid})
+        # Find the farmer by f_uuid
+        farmer = db.find_one({"PhoneNumber": phone_number})
         if not farmer:
-            return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer not found")
+            return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
 
-        # Generate a unique farm_name_id for the new farm card
-        farm_count = len(farmer["farm_cards"])
-        farm_card["farm_name_id"] = f"{f_uuid}_farm_{farm_count + 1}"
-
-        # Add the new farm card to the farmer's farm_cards list
-        farmer["farm_cards"].append(farm_card)
+        # Create a new farm card
+        new_farm_card = {
+            "farm_name_id": f"farm_{farm_name_id}",
+            "farmSize": "",
+            "livestockDetails": {
+                "cow_card": [],
+                "animal_inventory": []
+            }
+        }
 
         # Update the farmer's data in the database
-        result = db.update_one({"f_uuid": f_uuid}, {"$set": farmer})
-        if result.modified_count == 1:
+        result = db.update_one({"PhoneNumber": phone_number},
+            {"$push": {"farm_cards": new_farm_card}})
+        if result.modified_count > 0:
             return ResponseModel(data=str(result.modified_count), code=200, message="Farm card added successfully")
         else:
             return ErrorResponseModel(error="Failed to add farm card", code=500, message="Error adding farm card")
