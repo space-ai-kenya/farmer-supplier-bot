@@ -108,6 +108,42 @@ def get_farmer(db,f_uuid: str):
         return ErrorResponseModel(error=str(e), code=500, message="Error retrieving farmer")
 
 
+def get_farm_name_ids(db, phone_number: str):
+    try:
+        # Find the farmer by phone number
+        farmer = db.find_one({"PhoneNumber": phone_number})
+        print(farmer)
+        if not farmer:
+            return ErrorResponseModel(
+                error="Farmer not found",
+                code=404,
+                message="Farmer does not exist"
+            )
+
+        # Get the farm cards for the farmer
+        farm_cards = farmer.get("farm_cards", [])
+
+        # Extract farm_name_ids from farm cards
+        farm_name_ids = [farm_card.get("farm_name_id") for farm_card in farm_cards]
+
+        if not farm_name_ids:
+            return ErrorResponseModel(
+                error="Farm name IDs not found",
+                code=404,
+                message="No farm name IDs found for the given phone number"
+            )
+
+        return ResponseModel(
+            data=farm_name_ids,
+            code=200,
+            message="Farm name IDs retrieved successfully"
+        )
+    except Exception as e:
+        return ErrorResponseModel(
+            error=str(e),
+            code=500,
+            message="Error retrieving farm name IDs"
+        )
 
 
 

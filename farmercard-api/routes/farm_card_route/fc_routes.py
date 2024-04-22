@@ -20,6 +20,7 @@ from db.db_queries.FarmerSchema_queries import (
     create_farmer,
     add_farm_card,
     retrieve_all_farmers,
+    get_farm_name_ids,
 )
 
 farm_card_router = APIRouter(
@@ -64,12 +65,25 @@ def addFCard(farmer: AddFarmCard,db: Collection = Depends(get_farmer_collection)
     )
     return response
 
+@farm_card_router.post("/farmer_farm_names", response_description="Add new farmer", response_model=Union[ResponseModel,ErrorResponseModel])
+def get_farms(farmer: AddFarmCard,db: Collection = Depends(get_farmer_collection)):
+    pass
+
 @farm_card_router.get("/all_farmers", response_description="List all farmers", response_model=Union[ResponseModel,ErrorResponseModel])
 def list_farmers(db: Collection = Depends(get_farmer_collection)): 
     data = retrieve_all_farmers(db)
     return data
 
+class FarmNameIds(BaseModel):
+    p_number: str
+
+@farm_card_router.post("/farm_name_ids", response_description="List farm name IDs for a given phone number", response_model=Union[ResponseModel, ErrorResponseModel])
+async def get_farm_name_ids_endpoint(phone_number: FarmNameIds, db: Collection = Depends(get_farmer_collection)):
+    response = get_farm_name_ids(db, phone_number.p_number)
+    return response
+
+
 @farm_card_router.get("/schema", response_description="List all farmers", response_model=Union[ResponseModel,ErrorResponseModel])
-def list_farmers(farmer_schema: FarmerSchema,db: Collection = Depends(get_farmer_collection)): 
+def farm_card_Schema(farmer_schema: FarmerSchema,db: Collection = Depends(get_farmer_collection)): 
     data = farmer_schema.model_dumps()
     return data

@@ -15,7 +15,7 @@ class ResponseModel(BaseModel):
         }
 
 class ErrorResponseModel(BaseModel):
-    error: str
+    error: Any
     code: int
     message: str
 
