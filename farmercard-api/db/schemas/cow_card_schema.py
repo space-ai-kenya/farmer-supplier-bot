@@ -52,9 +52,10 @@ class BreedingEvent(BaseModel):
     method: str  # e.g., "natural breeding", "artificial insemination"
 
 class CalvingEvent(BaseModel):
-    date:Optional[str]
-    calf_sex: str
-    calf_weight: float
+    date_of_birth: Optional[str]
+    calf_sex: Optional[str]
+    calf_weight: Optional[float]
+    tag_name_or_id: Optional[str]
     notes: Optional[str]
 
 class ReproductiveHealth(BaseModel):
@@ -89,12 +90,10 @@ class FeedingAndNutrition(BaseModel):
     supplements: Optional[List[str]]
     body_condition_score: Optional[float]
 
+## Note:https://www.ema.europa.eu/en/glossary/withdrawal-period#:~:text=The%20time%20that%20must%20elapse,under%20'Maximum%20residue%20limits'.
 
-class CalvingInformation(BaseModel):
-    date: Optional[str]
-    sex: Optional[str]
-    tag: Optional[str]
-    weight: Optional[str]
+
+
 
 
 class TreatmentRecord(BaseModel):
@@ -125,7 +124,7 @@ class CowCard(BaseModel):
     milk_production_data: Optional[List[MilkProduction]]
     health_records: Optional[List[HealthRecord]]
     reproductive_records: Optional[List[ReproductiveHealth]]
-    calving_information: Optional[List[CalvingInformation]]
+    # calving_information: Optional[List[CalvingInformation]]
     feeding_and_nutrition: Optional[List[FeedingAndNutrition]]
     treatment_records: Optional[List[TreatmentRecord]]
     # laboratory_results: Optional[LaboratoryResults]

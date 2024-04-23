@@ -34,6 +34,11 @@ async def startup_event():
 
 logging.basicConfig(level=logging.INFO)
 
+
+@app.get("/", tags=["Root"])
+def read_root():
+    return {"message": "Spaceai.io Says Hello World"}
+
 # incluse routes
 app.include_router(fc_routes.farm_card_router)
 app.include_router(cc_routes.cow_card_router)
