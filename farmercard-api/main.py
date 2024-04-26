@@ -1,18 +1,20 @@
-from fastapi import FastAPI,Depends,Body, HTTPException,BackgroundTasks
+from fastapi import FastAPI
 import uvicorn
 import logging
 from db.database import get_database
-from pymongo.collection import Collection
-from bson import ObjectId
-
 from routes.cow_card_route import cc_routes
 from routes.farm_card_route import fc_routes
+from dotenv import load_dotenv
+import os
+load_dotenv()  # take environment variables from .env.
+
+URL1 = os.getenv('SERVER_URL')
 
 app = FastAPI(title="Farmer Management API",
     description="API for managing farmer data",
     version="1.0.0",
     servers=[
-        {"url":"https://6cc1-41-90-69-174.ngrok-free.app"},
+        {"url": f"{URL1}"},
         {"url": "http://localhost:8086"},
     ],
 )
