@@ -45,89 +45,68 @@ class CreateCowInfo(CreateBase):
     cow_info: IdentificationInfo
 
 @cow_card_router.post("/create_cow_info", response_model=ResponseModel)
-def createCowinfo(cow_identity: List[CreateCowInfo], db: Collection = Depends(get_farmer_collection)):
-    responses = []
+def createCowinfo(cow_identity: CreateCowInfo, db: Collection = Depends(get_farmer_collection)):
     # check from union if its a list or normal
-    if isinstance(cow_identity, list):
-        logging.info("---------- List of cow info ---------")
-        for cow_info in cow_identity:
-            logging.info(cow_info.cow_info.dict())
-            response = create_cow_info(db,PhoneNumber=cow_info.p_number, farm_name_id=cow_info.farm_name_id, cow_data=jsonable_encoder(cow_info.cow_info))
-            logging.info(response.dict())
-            responses.append(jsonable_encoder(response))
-        return responses[0]
+    logging.info(cow_identity.cow_info.dict())
+    response = create_cow_info(db,PhoneNumber=cow_identity.p_number, farm_name_id=cow_identity.farm_name_id, cow_data=jsonable_encoder(cow_identity.cow_info))
+    logging.info(response.dict())
+    return response
 
 
 class CreateMilkRecord(CreateBase):
     cow_id: str
-    milk_production_data: List[MilkProduction]
+    milk_production_data: MilkProduction
 
 @cow_card_router.post("/milk-production", response_model=ResponseModel)
-def createMilkProductionData(milk_prod: List[CreateMilkRecord], db: Collection = Depends(get_farmer_collection)):
-    responses = []
-
-    if milk_prod[0].milk_production_data != []:
-        logging.info("---------- List of milk production data ---------")
-        for milk_data in milk_prod:
-            logging.info(milk_data.milk_production_data)
-            response = create_milk_production_data(
-                db,
-                PhoneNumber=milk_data.p_number,
-                farm_name_id=milk_data.farm_name_id,
-                cow_id=milk_data.cow_id,
-                milk_production_data=jsonable_encoder(milk_data.milk_production_data)
-            )
-            responses.append(jsonable_encoder(response))
-        return responses[0]
-    else:
-        return ErrorResponseModel(error="Data Integridy",code=405,message="issue with data coming in")
+def createMilkProductionData(milk_prod: CreateMilkRecord, db: Collection = Depends(get_farmer_collection)):
+    logging.info("---------- List of milk production data ---------")
+    logging.info(milk_prod.milk_production_data)
+    response = create_milk_production_data(
+        db,
+        PhoneNumber=milk_prod.p_number,
+        farm_name_id=milk_prod.farm_name_id,
+        cow_id=milk_prod.cow_id,
+        milk_production_data=jsonable_encoder(milk_prod.milk_production_data)
+    )
+    return response
+    
 
 
 
 # ------------------ Health Records ----------------
 class CreateVaccinationRc(CreateBase):
     cow_id: str
-    v_records: List[VaccineRecord]
+    v_records: VaccineRecord
 
 @cow_card_router.post("/vaccine-record", response_model=ResponseModel)
-def create_Vaccination_Rec(vacc_record: List[CreateVaccinationRc], db: Collection = Depends(get_farmer_collection)):
-    responses = []
-    if vacc_record[0].v_records != []:
-        logging.info("---------- List of milk production data ---------")
-        for v_rec in vacc_record:
-            logging.info(v_rec.v_records)
-            response = create_vaccination_history(
-                db,
-                PhoneNumber=v_rec.p_number,
-                farm_name_id=v_rec.farm_name_id,
-                cow_id=v_rec.cow_id,
-                vaccination_record=jsonable_encoder(v_rec.v_records)
-            )
-            responses.append(jsonable_encoder(response))
-        return responses[0]
-    else:
-        return ErrorResponseModel(error="Data Integridy",code=405,message="issue with data coming in")
+def create_Vaccination_Rec(vacc_record: CreateVaccinationRc, db: Collection = Depends(get_farmer_collection)):
+
+    logging.info("---------- List of milk production data ---------")
+    logging.info(vacc_record.v_records)
+    response = create_vaccination_history(
+        db,
+        PhoneNumber=vacc_record.p_number,
+        farm_name_id=vacc_record.farm_name_id,
+        cow_id=vacc_record.cow_id,
+        vaccination_record=jsonable_encoder(vacc_record.v_records)
+    )
+    return response
 
 
 class CreateCalvingRc(CreateBase):
     cow_id: str
-    calf_record: List[CalvingEvent]
+    calf_record: CalvingEvent
 
 @cow_card_router.post("/calving-record", response_model=ResponseModel)
-def create_Calving_Rec(calf_records: List[CreateCalvingRc], db: Collection = Depends(get_farmer_collection)):
-    responses = []
-    if calf_records[0].calf_record != []:
-        logging.info("---------- List of milk production data ---------")
-        for c_rec in calf_records:
-            logging.info(c_rec.calf_record)
-            response = create_calving_history(
-                db,
-                PhoneNumber=c_rec.p_number,
-                farm_name_id=c_rec.farm_name_id,
-                cow_id=c_rec.cow_id,
-                calving_info=jsonable_encoder(c_rec.calf_record)
-            )
-            responses.append(jsonable_encoder(response))
-        return responses[0]
-    else:
-        return ErrorResponseModel(error="Data Integridy",code=405,message="issue with data coming in")
+def create_Calving_Rec(calf_records: CreateCalvingRc, db: Collection = Depends(get_farmer_collection)):
+    logging.info("---------- List of milk production data ---------")
+    logging.info(calf_records.calf_record)
+    response = create_calving_history(
+        db,
+        PhoneNumber=calf_records.p_number,
+        farm_name_id=calf_records.farm_name_id,
+        cow_id=calf_records.cow_id,
+        calving_info=jsonable_encoder(calf_records.calf_record)
+    )
+    return response
+   

@@ -35,7 +35,7 @@ class CreateFarmCard(BaseModel):
     farm_name_id:str
 
 @farm_card_router.post("/create_farmcard", description="Add new farmer", response_model=ResponseModel)
-def create_farmer(farmer: CreateFarmCard,db: Collection = Depends(get_farmer_collection)):
+def create_new_farmer(farmer: CreateFarmCard,db: Collection = Depends(get_farmer_collection)):
     f_uuid = farmer.f_uuid
     p_number = farmer.p_number
     farming_type = farmer.farming_type

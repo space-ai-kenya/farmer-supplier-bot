@@ -12,7 +12,7 @@ app = FastAPI(title="Farmer Management API",
     description="API for managing farmer data",
     version="1.0.0",
     servers=[
-        {"url":"https://4cb0-41-90-68-104.ngrok-free.app"},
+        {"url":"https://6cc1-41-90-69-174.ngrok-free.app"},
         {"url": "http://localhost:8086"},
     ],
 )

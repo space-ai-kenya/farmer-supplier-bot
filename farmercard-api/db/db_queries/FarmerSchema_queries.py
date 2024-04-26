@@ -44,7 +44,7 @@ def create_farmer(db, f_uuid: str,farm_name_id:str, phone_number: str, farming_t
             "FarmingType": farming_type,
             "farm_cards": [
                 {
-                    "farm_name_id": f"farm_{farm_name_id}",
+                    "farm_name_id": farm_name_id,
                     "farmSize": "",
                     "livestockDetails": {
                         "cow_card": [],

@@ -81,7 +81,7 @@ def create_milk_production_data(db, PhoneNumber: str, farm_name_id: str, cow_id:
         # Update the milk_production_data array for the specific cow card
         db.update_one(
             {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
-            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].milk_production_data": {"$each": milk_production_data}}},
+            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].milk_production_data": milk_production_data}},
             array_filters=[{"elem.identification_info.unique_id": cow_id}]
         )
         return ResponseModel(data=milk_production_data, code=201, message="Milk production data created successfully")
@@ -168,7 +168,7 @@ def create_calving_history(db, PhoneNumber: str, cow_id: str, farm_name_id: str,
        # Update the calving_information array for the specific cow card
         db.update_one(
             {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
-            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].calving_information": {"$each": calving_info}}},
+            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].calving_information": calving_info}},
             array_filters=[{"elem.identification_info.unique_id": cow_id}]
         )
         return ResponseModel(data=calving_info, code=201, message="Calving Information created successfully ✅")
