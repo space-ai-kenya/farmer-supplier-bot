@@ -87,7 +87,7 @@ def add_milk_production_single(db, PhoneNumber: str, farm_name_id: str, cow_id: 
 
 def add_milk_production_total(db, phone_number: str, farm_name_id: str, milk_production_record: dict):
     """
-    Add milk production record to a specific farm card.
+    Add milk production record total.
     """
     try:
         # Find the farmer by phone number and farm name ID
@@ -95,21 +95,17 @@ def add_milk_production_total(db, phone_number: str, farm_name_id: str, milk_pro
         if not farmer:
             return ErrorResponseModel(error="Farmer or farm not found", code=404, message="Farmer or farm does not exist")
 
-        # Find the index of the farm card within the farm_cards array
-        farm_card_index = None
-        for i, farm_card in enumerate(farmer["farm_cards"]):
-            if farm_card["farm_name_id"] == farm_name_id:
-                farm_card_index = i
-                break
+        # Find the farm card for the given farm_name_id
+        farm_card = next((card for card in farmer["farm_cards"] if card["farm_name_id"] == farm_name_id), None)
+        if not farm_card:
+            return ErrorResponseModel(error="Farm not found", code=404, message="Farm does not exist for the given farmer")
 
         # Append the milk production record to the records field of the farm card
         db.update_one(
             {"PhoneNumber": phone_number, "farm_cards.farm_name_id": farm_name_id},
             {"$push": {"farm_cards.$.records.milk_production": milk_production_record}}
         )
-
         return ResponseModel(data=None, code=200, message="Milk production record added successfully")
-    
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error adding milk production record")
 
