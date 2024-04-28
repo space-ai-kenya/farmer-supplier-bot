@@ -37,6 +37,9 @@ load_dotenv()
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 base_url = os.getenv('BASE_URL')
+db_host = os.getenv('DB_HOST')
+
+
 
 account_sid = os.getenv('ACCOUNT_SID')
 auth_token = os.getenv('AUTH_TOKEN')
@@ -62,7 +65,7 @@ assistant.set_service_url(assistant_url)
 # MySQL SQLALchemy configuration 
 
 app = APIFlask(__name__, title='', version='', static_folder='static',template_folder='templates')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://myuser:mypassword@host.docker.internal:3304/agridb'
+app.config['SQLALCHEMY_DATABASE_URI'] = db_host
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 CORS(app, resources={r"*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE"]}})
