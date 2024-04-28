@@ -1,27 +1,11 @@
-from typing import List, Optional
-from bson import ObjectId
-import logging
-from fastapi.encoders import jsonable_encoder
-from fastapi import HTTPException
-from db.schemas.farm_card_schema import (
-    FarmerSchema 
-)
-from db.schemas.cow_card_schema import (
-    CowCard,
-
-)
-
 from db.schemas.response_schema import (
     ResponseModel,
     ErrorResponseModel
 )
-
-
-
-from fastapi.encoders import jsonable_encoder
 import json
-# ---------------- farmer
 
+
+# ---------------- farmer
 def create_farmer(db, f_uuid: str,farm_name_id:str, phone_number: str, farming_type: str):
     """
     Types of Farming/Farmer:
@@ -61,6 +45,7 @@ def create_farmer(db, f_uuid: str,farm_name_id:str, phone_number: str, farming_t
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating farmer")
 
+
 def add_farm_card(db,phone_number: str, farm_name_id: str):
     try:
         # Find the farmer by f_uuid
@@ -89,6 +74,7 @@ def add_farm_card(db,phone_number: str, farm_name_id: str):
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error adding farm card")
 
+
 def retrieve_all_farmers(db, skip: int = 0, limit: int = 10):
     try:
         farmers = list(db.find({}, skip=skip, limit=limit))
@@ -96,6 +82,7 @@ def retrieve_all_farmers(db, skip: int = 0, limit: int = 10):
         return ResponseModel(data=farmers, code=200, message="Farmers retrieved successfully")
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error retrieving farmers")
+
 
 def get_farmer(db,f_uuid: str):
     try:
@@ -112,7 +99,6 @@ def get_farm_name_ids(db, phone_number: str):
     try:
         # Find the farmer by phone number
         farmer = db.find_one({"PhoneNumber": phone_number})
-        print(farmer)
         if not farmer:
             return ErrorResponseModel(
                 error="Farmer not found",
@@ -144,7 +130,3 @@ def get_farm_name_ids(db, phone_number: str):
             code=500,
             message="Error retrieving farm name IDs"
         )
-
-
-
-

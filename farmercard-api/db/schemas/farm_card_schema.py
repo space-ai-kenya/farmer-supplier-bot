@@ -1,10 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel,Field,validator
-from datetime import datetime
-from typing import Any
-import re 
-import json
-from bson.objectid import ObjectId
+from pydantic import BaseModel
 from .crop_card_schema import (
     CropCard
 )

@@ -1,9 +1,12 @@
 version: '3.8'
 
 services:
+  # ---------------- DATABASES ------------------
   mongodb:
     image: mongo:latest
     container_name: mongodb
+    ports:
+      - "127.0.0.1:27017:27017"
     restart: unless-stopped
     command: mongod --auth
     environment:
@@ -33,10 +36,21 @@ services:
     networks:
       - spaceai-fmproj-network
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     restart: always
   
-  ## ----------- code microservice-services services
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+     - ./pg_db:/var/lib/postgresql/data
+
+  ## ----------- MICROSERVICES ------------------
   api_fs:
     container_name: api_fs
     build:

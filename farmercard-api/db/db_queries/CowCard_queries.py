@@ -1,8 +1,4 @@
-from typing import List, Optional
-from bson import ObjectId
 import logging
-from fastapi.encoders import jsonable_encoder
-from fastapi import HTTPException
 from db.schemas.response_schema import (
     ResponseModel,
     ErrorResponseModel
