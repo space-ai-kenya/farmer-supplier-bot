@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
@@ -150,4 +151,158 @@ def generate_invoice(order_details, filename):
     ]))
     flowables.append(table)
 
+=======
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+from reportlab.lib.units import inch
+from reportlab.lib.enums import TA_CENTER
+import re
+import spacy
+from spacy.matcher import Matcher
+
+
+## --------- Local imports ---------------
+#from routes import parse_order_description
+from common.getfilepath import file_path
+
+## This function helps to filter the orders and checks for regular expressions regarding weight/quantities. Very Primitive way of doing NLP. WIP
+def parse_order_description(order_desc):
+
+    pattern = re.compile(r'(\d+\s?(kg|kgs|bag(s?)|box(es?)|lb|lbs|pound(s?)|gram(s?)|gm)\s?of)')
+    
+    items = order_desc.split(',')
+    parsed_items = [["Products", "Weight","Quantity"]]
+    for item in items:
+        match = pattern.search(item)
+        if match:
+            quantity = match.group(1).rstrip(' of')  # To Remove ' of' from the end of the quantity string
+            
+            name = pattern.sub('', item).strip()
+            parsed_items.append([name.capitalize(), quantity])
+        else:
+            # If no match, assume the entire string is the item name
+            parsed_items.append([item.strip().capitalize(), ''])
+    
+    return parsed_items
+
+
+
+## for adding a watermark to the invoice 
+# def add_watermark(canvas, doc):
+#     # Use x=0, y=0 for full-page background, adjust as needed
+#     canvas.saveState()
+#     canvas.drawImage("", 0, 0, width=doc.width, height=doc.height, mask='auto')
+#     canvas.restoreState()
+
+
+####### My invoice generation script -------------------------------------------------------------------------------------
+
+def generate_invoice(order_details, filename):
+    doc = SimpleDocTemplate(filename, pagesize=letter)
+    styles = getSampleStyleSheet()
+    flowables = []
+    
+    ## Invoice
+    logo = file_path(r"../images/spacelogo.png")
+    logo_img = Image(logo, width=2*inch, height=1*inch)  # Adjust width and height as needed
+    flowables.insert(0, logo_img) 
+
+    # Invoice header
+    heading_style = styles['Heading1']
+    heading_style.alignment = TA_CENTER
+    header = Paragraph('SpaceAI Marketplace - Farmer Order', heading_style)
+    flowables.append(header)
+    
+    #order Date
+    order_date_str = order_details.Order.orderDate.strftime("%Y-%m-%d %I:%M %p")
+
+    # Order and Farmer details
+    order_info = Paragraph(f'''
+    <br/>
+    <b>Order Number:</b> {order_details.Order.o_uuid}<br/>
+    <b>Date:</b> {order_date_str}<br/>
+    <b>Farmer's Name:</b> {order_details.Farmer.name}<br/>
+    <b>Farmer's Phone:</b> {order_details.Farmer.phone}<br/>
+    <b>County:</b> {order_details.Farmer.county}<br/>
+    <b>Vilage:</b> {order_details.Farmer.village}<br/>
+    <b>Address/Location:</b> {order_details.Farmer.location}<br/>
+    ''', styles['Normal'])
+    flowables.append(order_info)
+
+    flowables.append(Spacer(1, 12))  # Add some space before listing items
+
+    # Use the adjusted parse_order_description function here
+    order_items = parse_order_description(order_details.Order.order_desc)
+
+    # Create table for order items, using the parsed items
+    table = Table(order_items, colWidths=[4*inch, 3*inch,2*inch], hAlign='CENTER')
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightseagreen),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 10), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.lightsteelblue),
+    ]))
+    flowables.append(table)
+
+    doc.build(flowables)
+
+
+
+
+    def generate_invoice(order_details, filename):
+    doc = SimpleDocTemplate(filename, pagesize=letter)
+    styles = getSampleStyleSheet()
+    flowables = []
+    
+    # Invoice logo
+    logo = "path/to/spacelogo.png"  # Update the path to your logo
+    logo_img = Image(logo, width=2*inch, height=1*inch)
+    flowables.append(logo_img)
+    
+    # Invoice header
+    heading_style = styles['Heading1']
+    heading_style.alignment = TA_CENTER
+    header = Paragraph('SpaceAI Marketplace - Farmer Order', heading_style)
+    flowables.append(header)
+
+     #order Date
+    order_date_str = order_details.Order.orderDate.strftime("%Y-%m-%d %I:%M %p")
+
+    # Order and Farmer details
+    order_info = Paragraph(f'''
+    <br/>
+    <b>Order Number:</b> {order_details.Order.o_uuid}<br/>
+    <b>Date:</b> {order_details.Order.orderDate}<br/>
+    <b>Farmer's Name:</b> {order_details.Farmer.name}<br/>
+    <b>Farmer's Phone:</b> {order_details.Farmer.phone}<br/>
+    <b>County:</b> {order_details.Farmer.county}<br/>
+    <b>Village:</b> {order_details.Farmer.village}<br/>
+    <b>Address/Location:</b> {order_details.Farmer.location}<br/>
+    ''', styles['Normal'])
+    flowables.append(order_info)
+    flowables.append(Spacer(1, 12))
+
+    # Use the adjusted parse_order_description function here
+    final_order = gemini_parsed_order(order_details.Order.order_desc)
+    
+    # Create table for order items
+    table = Table(final_order, colWidths=[4*inch, 3*inch, 2*inch], hAlign='CENTER')
+    table.setStyle(TableStyle([
+        ('GRID', (0,0), (-1,-1), 0.5, colors.black),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.lightseagreen),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.lightsteelblue),
+        ('BOX', (0,0), (-1,-1), 0.5, colors.black)
+    ]))
+    flowables.append(table)
+
+>>>>>>> main
     doc.build(flowables)

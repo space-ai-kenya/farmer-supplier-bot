@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 version: '3.8'
 
 services:
@@ -72,3 +73,94 @@ networks:
   spaceai-fmproj-network:
     driver: bridge
     
+=======
+version: '3.8'
+
+services:
+  # ---------------- DATABASES ------------------
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "127.0.0.1:27017:27017"
+    restart: unless-stopped
+    command: mongod --auth
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: pass
+      MONGO_INITDB_DATABASE: farmerdb
+      MONGODB_DATA_DIR: /data/db
+      MONDODB_LOG_DIR: /dev/null
+    volumes:
+      - type: bind
+        source: ./mongo_data
+        target: /data/db
+    networks:
+      - spaceai-fmproj-network
+   
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql_db
+    environment:
+      MYSQL_DATABASE: agridb
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+      MYSQL_ROOT_PASSWORD: rootpassword 
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+    networks:
+      - spaceai-fmproj-network
+    ports:
+      - "127.0.0.1:3304:3306"
+    restart: always
+  
+  postgres:
+    image: postgres:14-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+     - ./pg_db:/var/lib/postgresql/data
+
+  ## ----------- MICROSERVICES ------------------
+  api_fs:
+    container_name: api_fs
+    build:
+      context: ./api-fs/.
+    ports:
+      - 5000:5000
+    volumes: 
+      - ./api-fs/.:/app/.
+    command: >
+      sh -c "flask run --host=0.0.0.0 --port=5000 --debug"
+    depends_on:
+      - mysql
+    networks:
+      - spaceai-fmproj-network
+  
+  farmercard_api:
+    container_name: farmercard_api
+    build:
+      context: ./farmercard-api/.
+    ports:
+      - "8086:8086"
+    volumes: 
+      - ./farmercard-api/.:/var/www/.
+    command: >
+      sh -c "python main.py"
+    depends_on:
+      - mongodb
+    networks:
+      - spaceai-fmproj-network
+
+
+networks:
+  spaceai-fmproj-network:
+    driver: bridge
+    
+
+>>>>>>> main

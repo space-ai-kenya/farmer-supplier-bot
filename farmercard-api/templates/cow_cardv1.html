@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cow Card Form</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container">
+    <h1 class="mt-5">Cow Card Form</h1>
+    <form id="cow-card-form">
+        <div class="row">
+            <!-- Identification Info -->
+            <div class="col-md-6 form-group">
+                <label for="unique_id">Cow ID:</label>
+                <input type="text" class="form-control" id="unique_id" placeholder="Enter cow ID">
+            </div>
+        </div>
+
+        <!-- Health Records -->
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Health Records:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="event_type" placeholder="Event Type">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="event_date" placeholder="Event Date">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary mt-2 add-health-record">Add Health Record</button>
+            </div>
+        </div>
+
+        <!-- Reproductive Health -->
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Reproductive Health:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="heat_cycles" placeholder="Heat Cycles">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="breeding_dates" placeholder="Breeding Dates">
+                    </div>
+                </div>
+                <div class="form-group mt-2">
+                    <input type="text" class="form-control" id="pregnancy_status" placeholder="Pregnancy Status">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="calving_history" placeholder="Calving History">
+                </div>
+            </div>
+        </div>
+
+        <!-- Milk Production Data -->
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Milk Production Data:</label>
+                <div class="row">
+                    <div class="col">
+                        <label for="milking_date">Milking Date:</label>
+                        <input type="text" class="form-control" id="milking_date" placeholder="Enter milking date">
+                    </div>
+                    <div class="col">
+                        <label for="milk_yield">Milk Yield:</label>
+                        <input type="text" class="form-control" id="milk_yield" placeholder="Enter milk yield">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Milk Health Report:</label>
+                    <div class="form-group">
+                        <label for="fat_percentage">Fat Percentage:</label>
+                        <input type="text" class="form-control" id="fat_percentage" placeholder="Enter fat percentage">
+                    </div>
+                    <div class="form-group">
+                        <label for="protein_percentage">Protein Percentage:</label>
+                        <input type="text" class="form-control" id="protein_percentage" placeholder="Enter protein percentage">
+                    </div>
+                    <div class="form-group">
+                        <label for="somatic_cell_count">Somatic Cell Count:</label>
+                        <input type="text" class="form-control" id="somatic_cell_count" placeholder="Enter somatic cell count">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feeding and Nutrition -->
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Feeding and Nutrition:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="feed_intake" placeholder="Feed Intake">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="supplements" placeholder="Supplements">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="body_condition_score" placeholder="Body Condition Score">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calving Information -->
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Calving Information:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="calving_date" placeholder="Calving Date">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="calf_details" placeholder="Calf Details (Tag, Sex, Weight)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Treatment Records -->
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Treatment Records:</label>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="medication" placeholder="Medication">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="dosage" placeholder="Dosage">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="withdrawal_period" placeholder="Withdrawal Period">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="health_event" placeholder="Health Event">
+                </div>
+                <button type="button" class="btn btn-primary mt-2 add-treatment-record">Add Treatment Record</button>
+            </div>
+        </div>
+
+        <!-- Laboratory Results -->
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Laboratory Results:</label>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="blood_tests" placeholder="Blood Tests">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="culture_sensitivity_tests" placeholder="Culture and Sensitivity Tests">
+                </div>
+            </div>
+        </div>
+
+        <!-- Body Measurements -->
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Body Measurements:</label>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="body_weight" placeholder="Body Weight">
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="body_measurements" placeholder="Body Measurements (height, length, etc.)">
+                </div>
+            </div>
+        </div>
+
+        <!-- Behavioral Observations -->
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Behavioral Observations:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="lameness" placeholder="Lameness">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="aggression" placeholder="Aggression">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Environmental Data -->
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Environmental Data:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="housing_conditions" placeholder="Housing Conditions">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="climate" placeholder="Climate">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-primary mt-3" onclick="submitForm()">Save</button>
+    </form>
+</div>
+
+<script>
+    function submitForm() {
+        // Get form data
+        var formData = {
+            identification_info: {
+                unique_id: document.getElementById('unique_id').value,
+            },
+            health_records: [],
+            reproductive_records: {
+                heat_cycles: document.getElementById('heat_cycles').value.split(','),
+                breeding_dates: document.getElementById('breeding_dates').value.split(','),
+                pregnancy_status: document.getElementById('pregnancy_status').value,
+                calving_history: document.getElementById('calving_history').value.split(','),
+            },
+            milk_production_data: {
+                milking_date: document.getElementById('milking_date').value,
+                milk_yield: parseFloat(document.getElementById('milk_yield').value),
+                milk_health: {
+                    fat_percentage: parseFloat(document.getElementById('fat_percentage').value),
+                    protein_percentage: parseFloat(document.getElementById('protein_percentage').value),
+                    somatic_cell_count: parseInt(document.getElementById('somatic_cell_count').value),
+                },
+            },
+            feeding_and_nutrition: {
+                feed_intake: parseFloat(document.getElementById('feed_intake').value),
+                supplements: document.getElementById('supplements').value.split(','),
+                body_condition_score: parseFloat(document.getElementById('body_condition_score').value),
+            },
+            calving_information: {
+                date: document.getElementById('calving_date').value,
+                calf_details: {
+                    tag: document.getElementById('calf_details').value.split(',')[0],
+                    sex: document.getElementById('calf_details').value.split(',')[1],
+                    weight: document.getElementById('calf_details').value.split(',')[2],
+                },
+            },
+            treatment_records: [],
+            laboratory_results: {
+                blood_tests: document.getElementById('blood_tests').value.split(','),
+                culture_sensitivity_tests: document.getElementById('culture_sensitivity_tests').value.split(','),
+            },
+            body_measurements: {
+                body_weight: parseFloat(document.getElementById('body_weight').value),
+                body_measurements: {}, // No specific fields provided in the form
+            },
+            behavioral_observations: {
+                lameness: document.getElementById('lameness').value,
+                aggression: document.getElementById('aggression').value,
+            },
+            environmental_data: {
+                housing_conditions: document.getElementById('housing_conditions').value,
+                climate: {}, // No specific fields provided in the form for climate details
+            },
+        };
+
+        // Add health records to the formData
+        var healthRecords = document.getElementsByClassName('health-record');
+        for (var i = 0; i < healthRecords.length; i++) {
+            var eventType = healthRecords[i].getElementsByClassName('event-type')[0].value;
+            var eventDate = healthRecords[i].getElementsByClassName('event-date')[0].value;
+            formData.health_records.push({
+                event_type: eventType,
+                event_date: eventDate,
+            });
+        }
+
+        // Add treatment records to the formData
+        var treatmentRecords = document.getElementsByClassName('treatment-record');
+        for (var i = 0; i < treatmentRecords.length; i++) {
+            var medication = treatmentRecords[i].getElementsByClassName('medication')[0].value;
+            var dosage = treatmentRecords[i].getElementsByClassName('dosage')[0].value;
+            var withdrawalPeriod = treatmentRecords[i].getElementsByClassName('withdrawal-period')[0].value;
+            var healthEvent = treatmentRecords[i].getElementsByClassName('health-event')[0].value;
+            formData.treatment_records.push({
+                medication: medication,
+                dosage: dosage,
+                withdrawal_period: withdrawalPeriod,
+                health_event: healthEvent,
+            });
+        }
+
+        // Now you can send formData to the server or process it as needed
+        console.log(formData);
+    }
+</script>
+
+</body>
+</html>

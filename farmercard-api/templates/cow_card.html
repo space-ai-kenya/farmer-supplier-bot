@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cow Card Form</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .health-record, .treatment-record {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="mt-5">Cow Card Form</h1>
+    <form id="cow-card-form">
+        <div class="row">
+            <!-- Identification Info -->
+            <div class="col-md-6 form-group">
+                <label for="unique_id">Cow ID:</label>
+                <input type="text" class="form-control" id="unique_id" placeholder="Enter cow ID">
+            </div>
+
+            <!-- Health Records -->
+            <div class="col-md-6 form-group">
+                <label>Health Records:</label>
+                <div class="row health-records-container">
+                    <div class="col">
+                        <input type="text" class="form-control event-type" placeholder="Event Type">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control event-date" placeholder="Event Date">
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn btn-primary add-health-record">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Reproductive Health -->
+            <div class="col-md-6 form-group">
+                <label>Reproductive Health:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="heat_cycles" placeholder="Heat Cycles">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="breeding_dates" placeholder="Breeding Dates">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control mt-2" id="pregnancy_status" placeholder="Pregnancy Status">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control mt-2" id="calving_history" placeholder="Calving History">
+                    </div>
+                </div>
+            </div>
+            <!-- Calving Information -->
+            <div class="col-md-6 form-group">
+                <label>Calving Information:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="calving_date" placeholder="Calving Date">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="calf_details" placeholder="Calf Details (Tag, Sex, Weight)">
+                    </div>
+                </div>
+            </div>
+          
+            <!-- Feeding and Nutrition -->
+            <div class="col-md-6 form-group">
+                <label>Feeding and Nutrition:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="feed_intake" placeholder="Feed Intake">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="supplements" placeholder="Supplements">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="body_condition_score" placeholder="Body Condition Score">
+                    </div>
+                </div>
+            </div>
+            <!-- Treatment Records -->
+            <div class="col-md-6 form-group">
+                <label>Treatment Records:</label>
+                <div class="row treatment-records-container">
+                    <div class="col">
+                        <input type="text" class="form-control medication" placeholder="Medication">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control dosage" placeholder="Dosage">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control withdrawal-period" placeholder="Withdrawal Period">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control health-event" placeholder="Health Event">
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn btn-primary add-treatment-record">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+        <div class="row">
+            <!-- Laboratory Results -->
+            <div class="col-md-6 form-group">
+                <label>Laboratory Results:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="blood_tests" placeholder="Blood Tests">
+                    </div>
+                    <div class="col">
+                     <input type="text" class="form-control" id="culture_sensitivity_tests" placeholder="Culture and Sensitivity Tests">
+                    </div>
+                </div>
+            </div>
+ 
+            <!-- Body Measurements -->
+            <div class="col-md-6 form-group">
+                <label>Body Measurements:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="body_weight" placeholder="Body Weight">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="body_measurements" placeholder="Body Measurements (height, length, etc.)">
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Behavioral Observations -->
+            <div class="col-md-6 form-group">
+                <label>Behavioral Observations:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="lameness" placeholder="Lameness">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="aggression" placeholder="Aggression">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Environmental Data -->
+            <div class="col-md-6 form-group">
+                <label>Environmental Data:</label>
+                <div class="row">
+                    <div class="col">
+                        <input type="text" class="form-control" id="housing_conditions" placeholder="Housing Conditions">
+                    </div>
+                    <div class="col">
+                        <input type="text" class="form-control" id="climate" placeholder="Climate">
+                    </div>
+                </div>
+            </div>
+  
+            <!-- Milk Production Data -->
+            <div class="col-md-6 form-group">
+                <label>Milk Production Data:</label>
+                <div class="row">
+                    <div class="col mt-2">
+                        <label for="milking_date">Milking Date:</label>
+                        <input type="text" class="form-control" id="milking_date" placeholder="Enter milking date">
+                    </div>
+                    <div class="col mt-2">
+                        <label for="milk_yield">Milk Yield:</label>
+                        <input type="text" class="form-control" id="milk_yield" placeholder="Enter milk yield">
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col mt-2">
+                        <label for="fat_percentage">Fat Percentage:</label>
+                        <input type="text" class="form-control" id="fat_percentage" placeholder="Enter fat percentage">
+                    </div>
+                    <div class="col mt-2">
+                        <label for="protein_percentage">Protein Percentage:</label>
+                        <input type="text" class="form-control" id="protein_percentage" placeholder="Enter protein percentage">
+                    </div>
+                    <div class="col mt-2">
+                        <label for="somatic_cell_count">Somatic Cell Count:</label>
+                        <input type="text" class="form-control" id="somatic_cell_count" placeholder="Enter somatic cell count">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-primary mt-3" onclick="submitForm()">Save</button>
+    </form>
+
+    <!-- jquery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</div>
+
+<script>
+$(document).ready(function() {
+    var healthRecordsContainer = $('.health-records-container');
+    var treatmentRecordsContainer = $('.treatment-records-container');
+
+    // Add health record
+    $('.add-health-record').on('click', function() {
+        var newHealthRecord = $('<div>', {
+            class: 'row health-record'
+        }).append(
+            $('<div>', { class: 'col mt-1' }).append(
+                $('<input>', {
+                    type: 'text',
+                    class: 'form-control event-type',
+                    placeholder: 'Event Type'
+                })
+            ),
+            $('<div>', { class: 'col' }).append(
+                $('<input>', {
+                    type: 'text',
+                    class: 'form-control event-date',
+                    placeholder: 'Event Date'
+                })
+            )
+        );
+        healthRecordsContainer.append(newHealthRecord);
+    });
+
+    // Add treatment record
+    $('.add-treatment-record').on('click', function() {
+        var newTreatmentRecord = $('<div>', {
+            class: 'row treatment-record mt-1'
+        }).append(
+            $('<div>', { class: 'col' }).append(
+                $('<input>', {
+                    type: 'text',
+                    class: 'form-control medication',
+                    placeholder: 'Medication'
+                })
+            ),
+            $('<div>', { class: 'col' }).append(
+                $('<input>', {
+                    type: 'text',
+                    class: 'form-control dosage',
+                    placeholder: 'Dosage'
+                })
+            ),
+            $('<div>', { class: 'col' }).append(
+                $('<input>', {
+                    type: 'text',
+                    class: 'form-control withdrawal-period',
+                    placeholder: 'Withdrawal Period'
+                })
+            ),
+            $('<div>', { class: 'col' }).append(
+                $('<input>', {
+                    type: 'text',
+                    class: 'form-control health-event',
+                    placeholder: 'Health Event'
+                })
+            )
+        );
+        treatmentRecordsContainer.append(newTreatmentRecord);
+    });
+
+    function submitForm() {
+        // Get form data and submit
+        // (The same code from the previous example)
+    }
+});
+</script>
+
+</body>
+</html>
