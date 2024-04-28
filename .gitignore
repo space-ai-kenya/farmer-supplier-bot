@@ -11,4 +11,7 @@ mysql_data
 cassandra_data
 .vscode
 mongo_data
+invoices
+Orders
+supplier-dashboard
 pg_db
