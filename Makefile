@@ -28,6 +28,11 @@ build:
 start:
 	docker compose  up -d
 
+<<<<<<< HEAD
+# -------- production
+production: 
+	echo "deploying to production"
+=======
 .PHONY: stop
 stop:
 	docker compose  stop
@@ -56,3 +61,4 @@ clean: down
 run-service:
 	@read -p "Enter service name: " SERVICE_NAME; \
 	docker compose  up -d $$SERVICE_NAME --build
+>>>>>>> main

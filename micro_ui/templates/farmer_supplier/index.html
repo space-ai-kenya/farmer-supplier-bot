@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "./base.html" %}
 {% block title %}Index{% endblock %}
 {% block header_title%}Add multiple farmer cows{% endblock %}
@@ -78,4 +79,86 @@ $('#submitAllBtn').click(function() {
   });
   */
         });
+=======
+{% extends "./base.html" %}
+{% block title %}Index{% endblock %}
+{% block header_title%}Add multiple farmer cows{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-5">
+  <div class="row">
+    <div class="col-12">
+      <table class="table table-responsive" id="cowIdentificationTable">
+        <thead>
+          <tr>
+            <th>Cow Name/ID</th>
+            <th>Birth Date</th>
+            <th>Age</th>
+            <th>Breed</th>
+            <th>Clear</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row mt-3">
+    <div class="col-12">
+      <div class="d-flex justify-content-end">
+        <button class="btn btn-primary mr-2" id="addRowBtn">Add Row</button>
+        <button class="btn btn-success" id="submitAllBtn">Submit All</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block script %}
+// Function to add a new row
+function addRow() {
+  $('#cowIdentificationTable tbody').append(
+      `<tr>
+          <td><input type="text" class="form-control" name="unique_id[]"></td>
+          <td><input type="date" class="form-control" name="birth_date[]"></td>
+          <td><input type="number" class="form-control" name="age[]"></td>
+          <td><input type="text" class="form-control" name="breed[]"></td>
+          <td><button type="button" class="btn btn-link clearRowBtn"><i class="fas fa-times text-danger"></i></button></td>
+      </tr>`
+  );
+}
+
+// Add row when the button is clicked
+$('#addRowBtn').click(function() {
+  addRow();
+});
+
+// Clear row when the "X" icon is clicked
+$(document).on('click', '.clearRowBtn', function() {
+  $(this).closest('tr').remove();
+});
+
+// Submit all rows when the "Submit All" button is clicked
+$('#submitAllBtn').click(function() {
+  // Serialize the form data
+  var formData = $('#cowIdentificationTable').serialize();
+  // For testing, you can log the serialized data
+  console.log(formData);
+  // Here, you can send the formData to your backend for processing
+  // Example using AJAX:
+  /*
+  $.ajax({
+      url: 'your-backend-url',
+      method: 'POST',
+      data: formData,
+      success: function(response) {
+          // Handle success response
+      },
+      error: function(xhr, status, error) {
+          // Handle error
+      }
+  });
+  */
+        });
+>>>>>>> main
 {% endblock %}
