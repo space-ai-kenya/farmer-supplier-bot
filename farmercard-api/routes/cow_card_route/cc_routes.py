@@ -9,7 +9,8 @@ from db.database import (
 )
 from db.db_queries.CowCard_queries import (
     create_cow_info,
-    create_milk_production_data,
+    add_milk_production_single,
+    add_milk_production_total,
 
     # ------------------ health
     create_vaccination_history,
@@ -53,15 +54,14 @@ def createCowinfo(cow_identity: CreateCowInfo, db: Collection = Depends(get_farm
     return response
 
 
-class CreateMilkRecord(CreateBase):
+class CreateSingleMilkRecord(CreateBase):
     cow_id: str
     milk_production_data: MilkProduction
 
-@cow_card_router.post("/milk-production", response_model=ResponseModel)
-def createMilkProductionData(milk_prod: CreateMilkRecord, db: Collection = Depends(get_farmer_collection)):
-    logging.info("---------- List of milk production data ---------")
+@cow_card_router.post("/milk-production-single", response_model=ResponseModel)
+def milk_Production_single(milk_prod: CreateSingleMilkRecord, db: Collection = Depends(get_farmer_collection)):
     logging.info(milk_prod.milk_production_data)
-    response = create_milk_production_data(
+    response = add_milk_production_single(
         db,
         PhoneNumber=milk_prod.p_number,
         farm_name_id=milk_prod.farm_name_id,
@@ -69,7 +69,20 @@ def createMilkProductionData(milk_prod: CreateMilkRecord, db: Collection = Depen
         milk_production_data=jsonable_encoder(milk_prod.milk_production_data)
     )
     return response
-    
+
+class CreateTotalMilkRecord(CreateBase):
+    milk_production_data: MilkProduction
+
+@cow_card_router.post("/milk-production-total", response_model=ResponseModel)
+def milk_Production_total(milk_prod: CreateTotalMilkRecord, db: Collection = Depends(get_farmer_collection)):
+    logging.info(milk_prod.milk_production_data)
+    response = add_milk_production_total(
+        db,
+        PhoneNumber=milk_prod.p_number,
+        farm_name_id=milk_prod.farm_name_id,
+        milk_production_data=jsonable_encoder(milk_prod.milk_production_data)
+    )
+    return response 
 
 
 
