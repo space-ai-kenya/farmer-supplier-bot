@@ -41,7 +41,7 @@ def create_cow_info(db, PhoneNumber: str, farm_name_id: str, cow_data: dict):
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating cow identification information")
     
-def create_milk_production_data(db, PhoneNumber: str, farm_name_id: str, cow_id: str, milk_production_data: list):
+def add_milk_production_single(db, PhoneNumber: str, farm_name_id: str, cow_id: str, milk_production_data: list):
     """
     Create a new milk production data for a cow.
     """
@@ -83,6 +83,32 @@ def create_milk_production_data(db, PhoneNumber: str, farm_name_id: str, cow_id:
         return ResponseModel(data=milk_production_data, code=201, message="Milk production data created successfully")
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating milk production data")
+
+
+def add_milk_production_total(db, phone_number: str, farm_name_id: str, milk_production_record: dict):
+    """
+    Add milk production record total.
+    """
+    try:
+        # Find the farmer by phone number and farm name ID
+        farmer = db.find_one({"PhoneNumber": phone_number, "farm_cards.farm_name_id": farm_name_id})
+        if not farmer:
+            return ErrorResponseModel(error="Farmer or farm not found", code=404, message="Farmer or farm does not exist")
+
+        # Find the farm card for the given farm_name_id
+        farm_card = next((card for card in farmer["farm_cards"] if card["farm_name_id"] == farm_name_id), None)
+        if not farm_card:
+            return ErrorResponseModel(error="Farm not found", code=404, message="Farm does not exist for the given farmer")
+
+        # Append the milk production record to the records field of the farm card
+        db.update_one(
+            {"PhoneNumber": phone_number, "farm_cards.farm_name_id": farm_name_id},
+            {"$push": {"farm_cards.$.records.milk_production": milk_production_record}}
+        )
+        return ResponseModel(data=None, code=200, message="Milk production record added successfully")
+    except Exception as e:
+        return ErrorResponseModel(error=str(e), code=500, message="Error adding milk production record")
+
 
 # ---------------------- Reproductive Health Queries ---------------------------------------------------
 def create_vaccination_history(db, PhoneNumber: str, cow_id: str,farm_name_id: str, vaccination_record:list):

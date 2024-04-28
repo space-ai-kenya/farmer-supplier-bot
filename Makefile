@@ -37,7 +37,8 @@ restart: stop start
 
 .PHONY: logs
 logs:
-	docker compose  logs -f
+	@read -p "Enter service name to follow logs: " SERVICE_NAME; \
+	docker compose  logs -f $$SERVICE_NAME
 
 .PHONY: down
 down:
