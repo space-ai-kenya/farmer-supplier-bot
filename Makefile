@@ -26,7 +26,7 @@ build:
 
 .PHONY: start
 start:
-	sudo docker compose  up -d
+	sudo docker compose  up -d --build
 
 .PHONY: stop
 stop:
