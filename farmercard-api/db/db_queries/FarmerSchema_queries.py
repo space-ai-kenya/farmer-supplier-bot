@@ -32,9 +32,13 @@ def create_farmer(db, f_uuid: str,farm_name_id:str, phone_number: str, farming_t
                     "farmSize": "",
                     "livestockDetails": {
                         "cow_card": [],
-                        "animal_inventory": []
                     },
-                    # "crop_card": []
+                    "inventory":{},
+                    "records":{
+                        "milk_production":[],
+                        "harvest_records": [],
+                        "sales_records": [],
+                    }
                 }
             ]
         }
