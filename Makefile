@@ -22,20 +22,15 @@ help:
 
 .PHONY: build
 build:
-	docker compose  build
+	sudo docker compose  build
 
 .PHONY: start
 start:
-	docker compose  up -d
+	sudo docker compose  up -d
 
-<<<<<<< HEAD
-# -------- production
-production: 
-	echo "deploying to production"
-=======
 .PHONY: stop
 stop:
-	docker compose  stop
+	sudo docker compose  stop
 
 .PHONY: restart
 restart: stop start
@@ -43,22 +38,19 @@ restart: stop start
 .PHONY: logs
 logs:
 	@read -p "Enter service name to follow logs: " SERVICE_NAME; \
-	docker compose  logs -f $$SERVICE_NAME
+	sudo docker compose  logs -f $$SERVICE_NAME
 
 .PHONY: down
 down:
-	docker compose  down -v
+	sudo docker compose  down -v
 
 .PHONY: clean
 clean: down
-	docker compose  rm -f
-	docker volume rm $(shell docker volume ls -q)
-# rm -rf ./mongo_data
-# rm -rf ./mysql_data
-# rm -rf ./pg_db
+	sudo docker compose  rm -f
+	sudo docker volume rm $(shell docker volume ls -q)
+	sudo docker system prune -a
 
 .PHONY: run-service
 run-service:
 	@read -p "Enter service name: " SERVICE_NAME; \
-	docker compose  up -d $$SERVICE_NAME --build
->>>>>>> main
+	sudo docker compose  up -d $$SERVICE_NAME --build
