@@ -15,12 +15,14 @@ from db.db_queries.CowCard_queries import (
     # ------------------ health
     create_vaccination_history,
     create_calving_history,
+    create_breeding_history
 )
 from db.schemas.cow_card_schema import (
     IdentificationInfo,
     MilkProduction,
     VaccineRecord,
-    CalvingEvent
+    CalvingEvent,
+    BreedingEvent
 )
 
 from db.schemas.response_schema import (
@@ -120,6 +122,23 @@ def add_calving_record(calf_records: CreateCalvingRc, db: Collection = Depends(g
         farm_name_id=calf_records.farm_name_id,
         cow_id=calf_records.cow_id,
         calving_info=jsonable_encoder(calf_records.calf_record)
+    )
+    return response
+
+class BreedingRc(CreateBase):
+    cow_id: str
+    breeding_event: BreedingEvent
+
+@cow_card_router.post("/breeding_record", response_model=ResponseModel)
+def add_breeding_record(breeding_record: BreedingRc, db: Collection = Depends(get_farmer_collection)):
+    logging.info("---------- List of milk production data ---------")
+    logging.info(breeding_record.breeding_event)
+    response = create_breeding_history(
+        db,
+        PhoneNumber=breeding_record.p_number,
+        farm_name_id=breeding_record.farm_name_id,
+        cow_id=breeding_record.cow_id,
+        calving_info=jsonable_encoder(breeding_record.breeding_event)
     )
     return response
    

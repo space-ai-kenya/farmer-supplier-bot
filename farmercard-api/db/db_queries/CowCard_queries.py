@@ -147,7 +147,7 @@ def create_vaccination_history(db, PhoneNumber: str, cow_id: str,farm_name_id: s
         # Update the milk_production_data array for the specific cow card
         db.update_one(
             {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
-            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].vaccination_record": {"$each": vaccination_record}}},
+            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].vaccination_record": vaccination_record }},
             array_filters=[{"elem.identification_info.unique_id": cow_id}]
         )
         return ResponseModel(data=vaccination_record, code=201, message="Vaccination Record created successfully ✅")
@@ -181,19 +181,62 @@ def create_calving_history(db, PhoneNumber: str, cow_id: str, farm_name_id: str,
             return ErrorResponseModel(error="Cow card not found", code=404, message=f"Cow of id: {cow_id} does not exist")
 
         # Check if the calving_information section exists, if not, create it
-        if "calving_information" not in cow_card_info:
+        if "calving_record" not in cow_card_info:
             db.update_one(
                 {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
-                {"$set": {"farm_cards.$[].livestockDetails.cow_card.$[].calving_information": []}}
+                {"$set": {"farm_cards.$[].livestockDetails.cow_card.$[].calving_record": []}}
             )
 
        # Update the calving_information array for the specific cow card
         db.update_one(
             {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
-            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].calving_information": calving_info}},
+            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].calving_record": calving_info}},
             array_filters=[{"elem.identification_info.unique_id": cow_id}]
         )
         return ResponseModel(data=calving_info, code=201, message="Calving Information created successfully ✅")
     except Exception as e:
         return ErrorResponseModel(error=str(e), code=500, message="Error creating calving record")
+
+def create_breeding_history(db, PhoneNumber: str, cow_id: str, farm_name_id: str, breeding_info: dict):
+    """
+    Create new calving information for a cow.
+    """
+    try:
+        # Check if the farmer exists
+        farmer = db.find_one({"PhoneNumber": PhoneNumber})
+        if not farmer:
+            return ErrorResponseModel(error="Farmer not found", code=404, message="Farmer does not exist")
+
+        # Find the farm card for the given farm_name_id
+        farm_card = next((card for card in farmer["farm_cards"] if card["farm_name_id"] == farm_name_id), None)
+        if not farm_card:
+            return ErrorResponseModel(error="Farm not found", code=404, message="Farm does not exist for the given farmer")
+
+        # Check if the cow_card section exists, if not, create it
+        if "cow_card" not in farm_card["livestockDetails"]:
+            db.update_one({"PhoneNumber": PhoneNumber, "farm_cards.farm_name_id": farm_name_id},
+                          {"$set": {"farm_cards.$.livestockDetails.cow_card": []}})
+
+        # Find the cow card with the given cow_id
+        cow_card_info = next((card for card in farm_card["livestockDetails"]["cow_card"] if card["identification_info"]["unique_id"] == cow_id), None)
+        if not cow_card_info:
+            return ErrorResponseModel(error="Cow card not found", code=404, message=f"Cow of id: {cow_id} does not exist")
+
+        # Check if the calving_information section exists, if not, create it
+        if "breeding_recod" not in cow_card_info:
+            db.update_one(
+                {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+                {"$set": {"farm_cards.$[].livestockDetails.cow_card.$[].breeding_recod": []}}
+            )
+
+       # Update the calving_information array for the specific cow card
+        db.update_one(
+            {"PhoneNumber": PhoneNumber, "farm_cards.livestockDetails.cow_card.identification_info.unique_id": cow_id},
+            {"$push": {"farm_cards.$[].livestockDetails.cow_card.$[elem].breeding_recod": breeding_info}},
+            array_filters=[{"elem.identification_info.unique_id": cow_id}]
+        )
+        return ResponseModel(data=breeding_info, code=201, message="Breeding Information created successfully ✅")
+    except Exception as e:
+        return ErrorResponseModel(error=str(e), code=500, message="Error creating breeding record")
+
 
