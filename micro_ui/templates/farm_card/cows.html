@@ -64,24 +64,20 @@ $(document).on('click', '.clearRowBtn', function() {
 
 // Submit all rows when the "Submit All" button is clicked
 $('#submitAllBtn').click(function() {
-  // Serialize the form data
-  var formData = $('#cowIdentificationTable').serialize();
-  // For testing, you can log the serialized data
-  console.log(formData);
-  // Here, you can send the formData to your backend for processing
-  // Example using AJAX:
-  /*
-  $.ajax({
-      url: 'your-backend-url',
-      method: 'POST',
-      data: formData,
-      success: function(response) {
-          // Handle success response
-      },
-      error: function(xhr, status, error) {
-          // Handle error
-      }
+  var data = [];
+  // Loop through each row in the table
+  $('#cowIdentificationTable tbody tr').each(function() {
+    var row = {};
+    // Get values from input fields in the current row
+    row.unique_name_or_id = $(this).find('input[name="unique_id[]"]').val();
+    row.birth_date = $(this).find('input[name="birth_date[]"]').val();
+    row.age = $(this).find('input[name="age[]"]').val();
+    row.breed = $(this).find('input[name="breed[]"]').val();
+    // Add row data to the list
+    data.push(row);
   });
-  */
-        });
+  // Print the data to the console
+  console.log(JSON.stringify(data));
+});
+
 {% endblock %}
