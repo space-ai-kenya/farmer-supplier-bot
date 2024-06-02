@@ -17,6 +17,17 @@ from db.db_queries.FarmerSchema_queries import (
     get_farm_name_ids,
 )
 
+from db.schemas.farm_card_records_schema import (
+    DailyExpense,
+    MonthlySavingsPlan,
+    IncomeExpenditurePlan
+)
+from db.db_queries.FarmerSchema_records import (
+    add_daily_expense,
+    add_income_expenditure_plan,
+    add_monthly_savings_plan 
+)
+
 farm_card_router = APIRouter(
     prefix="/farm_card",
     tags=["farm_card"],
@@ -76,3 +87,38 @@ async def get_farm_name_ids_endpoint(phone_number: FarmNameIds, db: Collection =
 def farm_card_Schema(farmer_schema: FarmerSchema,db: Collection = Depends(get_farmer_collection)): 
     data = farmer_schema.model_dumps()
     return data
+
+
+
+# ---------------------------------- RECORD KEEPING
+class AddDailyExpenseRequest(BaseModel):
+    phone_number: str
+    farm_name_id: str
+    daily_expense: DailyExpense
+
+class AddMonthlySavingsPlanRequest(BaseModel):
+    phone_number: str
+    farm_name_id: str
+    monthly_savings_plan: MonthlySavingsPlan
+
+class AddIncomeExpenditurePlanRequest(BaseModel):
+    phone_number: str
+    farm_name_id: str
+    income_expenditure_plan: IncomeExpenditurePlan
+
+
+@farm_card_router.post("/add_daily_expense", description="Add daily expense for a farm", response_model=ResponseModel)
+def add_daily_expense(request: AddDailyExpenseRequest, db: Collection = Depends(get_farmer_collection)):
+    response = add_daily_expense(db, request.phone_number, request.farm_name_id, request.daily_expense)
+    return response
+
+@farm_card_router.post("/add_monthly_savings_plan", description="Add monthly savings plan for a farm", response_model=ResponseModel)
+def add_monthly_savings_plan(request: AddMonthlySavingsPlanRequest, db: Collection = Depends(get_farmer_collection)):
+    response = add_monthly_savings_plan(db, request.phone_number, request.farm_name_id, request.monthly_savings_plan)
+    return response
+
+@farm_card_router.post("/add_income_expenditure_plan", description="Add income and expenditure plan for a farm", response_model=ResponseModel)
+def add_income_expenditure_plan(request: AddIncomeExpenditurePlanRequest, db: Collection = Depends(get_farmer_collection)):
+    response = add_income_expenditure_plan(db, request.phone_number, request.farm_name_id, request.income_expenditure_plan)
+    return response
+
